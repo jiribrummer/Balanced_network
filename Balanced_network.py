@@ -25,6 +25,8 @@ muext = 2*Theta
 g = 5
 sigmaext = J*sqrt(2*Theta/J)
 
+Duration = 100*ms
+
 # # Leaky Integrate and Fire neuron equation. Not in use anymore
 # eqs = """
 # dv/dt = (El-v)/Tau_e : volt
@@ -34,22 +36,16 @@ sigmaext = J*sqrt(2*Theta/J)
 
 # Integrate and Fire neuron equation
 eqs = """
-dv/dt = (-v + muext + sigmaext * sqrt(Tau_e) * xi)/Tau_e : volt
-Tau_e : second
+dv/dt = (-v + muext + sigmaext * sqrt(Tau_e) * xi )/Tau_e : volt
 """
 
 # Excitatory neuron group
-group_e = NeuronGroup(2, eqs, threshold='v>Theta',
+group_e = NeuronGroup(50, eqs, threshold='v>Theta',
                     reset='v=Vr', refractory=Tau_rp)
-# group.El = [30, 30]*mV
-group_e.Tau_e = [20, 30]*ms
-# group.v = Vr
 
-group_i = NeuronGroup(2, eqs, threshold='v>Theta',
+
+group_i = NeuronGroup(50, eqs, threshold='v>Theta',
                     reset='v=Vr', refractory=Tau_rp)
-# group.El = [30, 30]*mV
-group_i.Tau_e = [20, 30]*ms
-# group.v = Vr
 
 
 S_e = Synapses(group_e, group_e, pre='v_post += J')
@@ -62,27 +58,26 @@ S_i.delay = D
 
 M_e = StateMonitor(group_e, 'v', record=True)
 M_i= StateMonitor(group_i, 'v', record=True)
-run(50*ms)
+
+SM_e = SpikeMonitor(group_e)
+SM_i = SpikeMonitor(group_i)
+
+run(Duration)
 
 
 figure()
-
-
 
 subplot(221)
 title('Neuron 1 excitatory')
 plot(M_e.t/ms, M_e.v[0])
 
-
 subplot(223)
 title('Neuron 2 excitatory')
 plot(M_e.t/ms, M_e.v[1])
 
-
 subplot(222)
 title('Neuron 1 inhibitory')
 plot(M_i.t/ms, M_i.v[0])
-
 
 subplot(224)
 title('Neuron 2 inhibitory')
@@ -90,6 +85,19 @@ plot(M_i.t/ms, M_i.v[1])
 
 xlabel('Time (ms)')
 ylabel('v')
+
+figure()
+
+subplot(211)
+title('Excitatory')
+plot(SM_e.t/ms, SM_e.i, '.k')
+
+subplot(212)
+title('Inhibitory')
+plot(SM_i.t/ms, SM_i.i, '.k')
+
+xlabel('Time (ms)')
+ylabel('Neuron index')
 
 show()
 
