@@ -28,8 +28,8 @@ print "start balanced network"
 # # # # # Duration = 100*ms
 
 # Initialize dummy network parameters
-Ne = 400            # Number of excitatory pyramidal cells
-Ni = 100            # Number of inhibitory cells
+Ne = 1000          # Number of excitatory pyramidal cells
+Ni = 250          # Number of inhibitory cells
 epsilon = 0.1       # Rate of sparseness
 Ce = Ne*epsilon     # Number of connections receiving from excitatory neurons
 Ci = Ni*epsilon     # Number of connections receiving from inhibitory neurons
@@ -43,16 +43,19 @@ Tau_rp = 2*ms       # Refractory period
 Theta = 20*mV       # Threshold
 Vr = 10*mV          # Reset value after threshold is reached
 
-g = 5
-Vext = 2
+g = 4.5
+Vext = 0.9
 muext = Vext*Theta
 sigmaext = J*sqrt(Vext*Theta/J)
 
-Duration = 600*ms
+print muext
+print sigmaext
+
+Duration = 100*ms
 
 # Integrate and Fire neuron equation
 eqs = """
-dv/dt = (-v + (muext + sigmaext * sqrt(Tau_e) * xi) )/Tau_e : volt 
+dv/dt = (-v + Ce*(muext + sigmaext * sqrt(Tau_e) * xi) )/Tau_e : volt 
 """
 
 # Excitatory neuron group
@@ -102,7 +105,8 @@ def visualise_connectivity(S_e):
 
 visualise_connectivity(S_e)
 visualise_connectivity(S_i)
-
+visualise_connectivity(S_ei)
+visualise_connectivity(S_ie)
 
 M_e = StateMonitor(group_e, 'v', record=True)
 M_i= StateMonitor(group_i, 'v', record=True)
@@ -166,6 +170,7 @@ plot(PRM_i.t/ms, PRM_i.rate)
 
 xlabel('Time (ms)')
 ylabel('Neuron index')
+
 
 show()
 
