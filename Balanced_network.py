@@ -1,5 +1,6 @@
 # Simulation of balanced network (Model A of Brunel (2000))
 from brian2 import *
+import random
 
 # Start simulation
 print "start balanced network"
@@ -28,9 +29,10 @@ print "start balanced network"
 # # # # # Duration = 100*ms
 
 # Initialize dummy network parameters
-Ne = 1000          # Number of excitatory pyramidal cells
-Ni = 250          # Number of inhibitory cells
-epsilon = 0.1       # Rate of sparseness
+Ne = 1600         # Number of excitatory pyramidal cells
+Ni = 400          # Number of inhibitory cells
+epsilon = 0.4098    # Rate of sparseness. This value is calculated with N = 2000
+# epsilon = 0.2577	# Rate of sparseness. This value is calculated with N = 4000	
 Ce = Ne*epsilon     # Number of connections receiving from excitatory neurons
 Ci = Ni*epsilon     # Number of connections receiving from inhibitory neurons
 Cext = Ce           # Number of connections receiving from external neurons
@@ -42,29 +44,40 @@ Tau_e = 20*ms       # Excitation period
 Tau_rp = 2*ms       # Refractory period
 Theta = 20*mV       # Threshold
 Vr = 10*mV          # Reset value after threshold is reached
+dt = 0.1 * ms		# Timesteps of neurongroup
 
-g = 4.5
-Vext = 0.9
+# State A
+g = 3
+Vext = 2
+
+# # State B
+# g = 6
+# Vext = 4
+
+# # State C
+# g = 5
+# Vext = 2
+
+# # State D
+# g = 4.5
+# Vext = 0.9
+
 muext = Vext*Theta
 sigmaext = J*sqrt(Vext*Theta/J)
 
-print muext
-print sigmaext
-
-Duration = 100*ms
+Duration = 600*ms
 
 # Integrate and Fire neuron equation
 eqs = """
-dv/dt = (-v + Ce*(muext + sigmaext * sqrt(Tau_e) * xi) )/Tau_e : volt 
+dv/dt = (-v + (muext + sigmaext * sqrt(Tau_e) * xi) )/Tau_e : volt 
 """
 
 # Excitatory neuron group
-neurons = NeuronGroup(Ne+Ni, eqs, threshold='v>Theta',
+neurons = NeuronGroup(Ne+Ni, eqs, dt=dt, threshold='v>Theta',
 					reset='v=Vr', refractory=Tau_rp)
 
 group_e = neurons[:Ne]
 group_i = neurons[Ne:]
-
 
 S_e = Synapses(group_e, group_e, pre='v_post += J')
 S_e.connect('i!=j', p=epsilon)
@@ -81,7 +94,6 @@ S_i.delay = D
 S_ie = Synapses(group_e, group_i, pre='v_post += J')
 S_ie.connect('i!=j', p=epsilon)
 S_ie.delay = D
-
 
 def visualise_connectivity(S_e):
 	Ns = len(S_e.source)
@@ -102,75 +114,100 @@ def visualise_connectivity(S_e):
 	ylim(-1, Nt)
 	xlabel('Source neuron index')
 	ylabel('Target neuron index')
+	
+def visualise_total_connectivity(S_e, S_i, S_ei, S_ie):
+	Ns = len(S_e.source) + len(S_i.source)
+	Nt = len(S_e.target) + len(S_i.target)
+	figure()
+	newvar_i = numpy.append(numpy.append(numpy.append(S_e.i, S_i.i + len(S_e.source)), S_ei.i + len(S_e.source)), S_ie.i)
+	newvar_j = numpy.append(numpy.append(numpy.append(S_e.j, S_i.j + len(S_e.source)), S_ei.j), S_ie.j + len(S_e.source))
+	plot(newvar_i, newvar_j, 'ok')
+	grid(which='both')
+	xlim(-1, Ns)
+	ylim(-1, Nt)
+	xlabel('Source neuron index')
+	ylabel('Target neuron index')
 
-visualise_connectivity(S_e)
-visualise_connectivity(S_i)
-visualise_connectivity(S_ei)
-visualise_connectivity(S_ie)
+# # Uncomment for detaild view of connectivity
+# visualise_connectivity(S_e)
+# visualise_connectivity(S_i)
+# visualise_connectivity(S_ei)
+# visualise_connectivity(S_ie)
+
+# # Total connectivity. Only useful when N is small
+if Ne+Ni < 500:
+	visualise_total_connectivity(S_e, S_i, S_ei, S_ie)
 
 M_e = StateMonitor(group_e, 'v', record=True)
 M_i= StateMonitor(group_i, 'v', record=True)
 
-SM_e = SpikeMonitor(group_e[:50])
-SM_i = SpikeMonitor(group_i[:50])
+SM = SpikeMonitor(neurons)
 
 PRM_e = PopulationRateMonitor(group_e)
 PRM_i = PopulationRateMonitor(group_i)
 
 run(Duration, report='stdout')
 
-print SM_e.num_spikes
-print SM_i.num_spikes
 
+# # Figures
 
-figure()
+# # V-t plots of 4 random excitatory and inhobitory single neurons
+figure(1)
+
+excitatoryList = random.sample(xrange(0,Ne), 2)
+inhibitoryList = random.sample(xrange(0,Ni), 2)
 
 subplot(221)
-title('Neuron 1 excitatory')
-plot(M_e.t/ms, M_e.v[0])
+title('Excitatory neuron: neuron %s'%(excitatoryList[0]))
+plot(M_e.t/ms, M_e.v[excitatoryList[0]])
 
 subplot(223)
-title('Neuron 2 excitatory')
-plot(M_e.t/ms, M_e.v[1])
+title('Excitatory neuron: neuron %s'%(excitatoryList[1]))
+plot(M_e.t/ms, M_e.v[excitatoryList[1]])
 
 subplot(222)
-title('Neuron 1 inhibitory')
-plot(M_i.t/ms, M_i.v[0])
+title('Inhibitory neuron: neuron %s'%(inhibitoryList[0]))
+plot(M_i.t/ms, M_i.v[inhibitoryList[0]])
 
 subplot(224)
-title('Neuron 2 inhibitory')
+title('Inhibitory neuron: neuron %s'%(inhibitoryList[1]))
 plot(M_i.t/ms, M_i.v[1])
 
 xlabel('Time (ms)')
 ylabel('v')
 
-figure()
 
-subplot(211)
-title('Excitatory')
-plot(SM_e.t/ms, SM_e.i, '.k')
+# # Plot of firing rate of all neurons, a random sample
+# # of 50 neurons and a cumulative rate over time.
+figure(2)
 
-subplot(212)
+subplot(311)
+title('Raster plot of the spikes of all neurons over time')
+
+ylabel('neuron index')
+plot(SM.t/ms, SM.i, '.k')
+
+
+randomsample = random.sample(xrange(Ne+Ni), 50)
+plotlist_t = []
+plotlist_i = []
+for n in range(len(SM.i)):
+	if SM.i[n] in randomsample:
+		plotlist_t.append(SM.t[n])
+		plotlist_i.append(randomsample.index(SM.i[n]))
+
+subplot(312)
+title('Raster plot of the spikes of a random sample of 50 neurons over time')
+ylabel('neuron index')
+plot(plotlist_t, plotlist_i, '.k')
+
+subplot(313)
+
+title('Global activity of system over time')
+ylabel('Frequency')
+xlabel('time (ms)')
 # plot(PRM_e.t/ms, PRM_e.rate*Ne/10000)
 plot(PRM_e.t/ms, PRM_e.rate)
-
-figure()
-
-subplot(211)
-title('Inhibitory')
-plot(SM_i.t/ms, SM_i.i, '.k')
-
-subplot(212)
-# plot(PRM_i.t/ms, PRM_i.rate*Ni/10000)
-plot(PRM_i.t/ms, PRM_i.rate)
-
-# subplot(212)
-# title('Inhibitory')
-# plot(SM_i.t/ms, SM_i.i, '.k')
-
-xlabel('Time (ms)')
-ylabel('Neuron index')
-
 
 show()
 
