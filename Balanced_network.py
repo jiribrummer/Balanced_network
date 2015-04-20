@@ -47,14 +47,14 @@ Theta = 20*mV       # Threshold
 Vr = 10*mV          # Reset value after threshold is reached
 dt = 0.1 * ms		# Timesteps of neurongroup
 
-# # State A
-# g = 3
-# Vext = 2
+# State A
+g = 3
+Vext = 2
 
-# State B
-g = 6
-Vext = 4
-
+# # State B
+# g = 6
+# Vext = 4
+# 
 # # State C
 # g = 5
 # Vext = 2
@@ -180,13 +180,39 @@ ylabel('v')
 
 # # Plot of firing rate of all neurons, a random sample
 # # of 50 neurons and a cumulative rate over time.
+# figure(2)
+# 
+# subplot(311)
+# title('Raster plot of the spikes of all neurons over time')
+# 
+# ylabel('neuron index')
+# plot(SM.t/ms, SM.i, '.k')
+# 
+# 
+# randomsample = random.sample(xrange(Ne+Ni), 50)
+# plotlist_t = []
+# plotlist_i = []
+# for n in range(len(SM.i)):
+# 	if SM.i[n] in randomsample:
+# 		plotlist_t.append(SM.t[n]/ms)
+# 		plotlist_i.append(randomsample.index(SM.i[n]))
+# 
+# subplot(312)
+# title('Raster plot of the spikes of a random sample of 50 neurons over time')
+# ylabel('neuron index')
+# plot(plotlist_t, plotlist_i, '.k')
+# 
+# subplot(313)
+# 
+# title('Global activity of system over time')
+# ylabel('Frequency')
+# xlabel('time (ms)')
+# # plot(PRM_e.t/ms, PRM_e.rate*Ne/10000)
+# plot(PRM_e.t/ms, PRM_e.rate)
+
+
 figure(2)
 
-subplot(311)
-title('Raster plot of the spikes of all neurons over time')
-
-ylabel('neuron index')
-plot(SM.t/ms, SM.i, '.k')
 
 
 randomsample = random.sample(xrange(Ne+Ni), 50)
@@ -194,21 +220,22 @@ plotlist_t = []
 plotlist_i = []
 for n in range(len(SM.i)):
 	if SM.i[n] in randomsample:
-		plotlist_t.append(SM.t[n])
+		plotlist_t.append(SM.t[n]/ms)
 		plotlist_i.append(randomsample.index(SM.i[n]))
 
-subplot(312)
+subplot(211)
 title('Raster plot of the spikes of a random sample of 50 neurons over time')
 ylabel('neuron index')
 plot(plotlist_t, plotlist_i, '.k')
 
-subplot(313)
+subplot(212)
 
 title('Global activity of system over time')
 ylabel('Frequency')
 xlabel('time (ms)')
 # plot(PRM_e.t/ms, PRM_e.rate*Ne/10000)
 plot(PRM_e.t/ms, PRM_e.rate)
+
 
 show()
 
