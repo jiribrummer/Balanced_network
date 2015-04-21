@@ -17,8 +17,8 @@ ginh = 10 * nS      # Conductance of inhibitory neurons
 Idep = 50 * nS      # After depolarising current
 Eexc = 0 * mV       # Reversal potantial excitatory neurons
 Einh = -80 * mV     # Reversal potantial inhbitory neurons
-N_e = 10            # Number of excitatory input neurons (in paper 1000 used)
-N_i = 10           # Number of inhibitory input neurons (in paper 250 used)
+N_e = 8            # Number of excitatory input neurons (in paper 1000 used)
+N_i = 2           # Number of inhibitory input neurons (in paper 250 used)
 F_i = 10 * Hz       # Frequency of inhibitory input neurons
 C_m = Tau_m * gleak #
 
@@ -28,16 +28,23 @@ Vr = -55*mV         # Reset value after threshold is reached
 tau_exc = 5 * ms
 tau_inh = 10 * ms
 
-Duration = 1000*ms
+Duration = 100*ms
 
 # Integrate and Fire neuron equation
 # Still need to be fixed
 eqs = """
-dv/dt = ( gleak*(Vleak-v) + gexc*(Eexc-v) + ginh*(Einh-v) + Idep) / (C_m): volt
+dv/dt = ( gleak*(Vleak-v) + gexc*(Eexc-v) + ginh*(Einh-v)) / (C_m): volt
 dgexc/dt = -gexc/tau_exc : siemens
 dginh/dt = -ginh/tau_inh : siemens
-dIdep/dt = -Idep/tau_dep : amp
+# dIdep/dt = -Idep/tau_dep : amp
 """
+
+# # Learning rule
+v = -69 
+# F = -1 / (1 + exp(-(v+55 * mV)/(4 * mV))) + .5 * (2 * mV) * log(1 + exp((v+(52 * mV )/(2 * mV))))
+F = (-1 / (1 + exp(-((v+55)/(4))))) + .5 * 2 * log10(1 + exp((v+52)/(2)))
+
+
 
 # Function to determine rates for excitatory input neurons
 def determineRates(N):
@@ -56,7 +63,7 @@ def determineRates(N):
 # IF neuron. Equation still to be fixed.
 neuron = NeuronGroup(1, eqs, dt=dt, threshold='v>Theta',
 					reset='v=Vr', refractory=Tau_rp)
-neuron.v = Vleak
+neuron.v = Vr
 
 # Excitatory artificial input.
 input = PoissonGroup(N_e, rates=determineRates(N_e))
@@ -64,31 +71,36 @@ input = PoissonGroup(N_e, rates=determineRates(N_e))
 # Inhibitory artificial input
 input_inh = PoissonGroup(N_i, rates = F_i)
 
+
 # Excitatory synapses. 
 S_e = Synapses(input, neuron,
              '''w : siemens''',
-             connect=True,
+             pre='''gexc += w''',
+             connect=True
              )
-S_e.w = random.gauss(gexc, gexc/3)
+for i in range(len(S_e.w)):
+    S_e.w[i] = random.gauss(gexc, gexc/3)
 
 # Inhibitory synapses. 
 S_i = Synapses(input_inh, neuron,
              '''w : siemens''',
-             connect=True,
+             pre='''ginh += w''',
+             connect=True
              )
-S_i.w = random.gauss(ginh, ginh/3)
+for i in range(len(S_i.w)):
+    S_i.w[i] = random.gauss(ginh, ginh/3)
 
 # Monitors. Only s_mon is used to visualize input neurons
 # and produces replica of Yger Fig 2A.
 s_mon_e = SpikeMonitor(input)
 s_mon_i = SpikeMonitor(input_inh)
 M= StateMonitor(neuron, 'v', record=True)
-mon = StateMonitor(S_e, 'w', record=[0, 1])
+mon = StateMonitor(S_e, 'w', record=True)
 MS = SpikeMonitor(neuron)
 
 
 # Main loop to run simulation
-for i in range(10):
+for i in range(2):
     input.rates = determineRates(N_e)
     run(Duration/10, report='stdout')
 
@@ -164,8 +176,9 @@ plot(s_mon_i.t/ms, s_mon_i.i, '.')
 #
 
 # plot for figure 2B
-# figure()
-# scatter()
+figure()
+scatter(mon.t/ms, zeros(200))
+# , mon.w[0]
 
 
 show()
