@@ -47,13 +47,13 @@ Theta = 20*mV       # Threshold
 Vr = 10*mV          # Reset value after threshold is reached
 dt = 0.1 * ms		# Timesteps of neurongroup
 
-# State A
-g = 3
-Vext = 2
+# # State A
+# g = 3
+# Vext = 2
 
-# # State B
-# g = 6
-# Vext = 4
+# State B
+g = 6
+Vext = 4
 # 
 # # State C
 # g = 5
