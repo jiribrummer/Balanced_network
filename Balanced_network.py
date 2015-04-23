@@ -30,8 +30,8 @@ print "start balanced network"
 # # # # # Duration = 100*ms
 
 # Initialize dummy network parameters
-Ne = 1600         # Number of excitatory pyramidal cells
-Ni = 400          # Number of inhibitory cells
+Ne = 40         # Number of excitatory pyramidal cells
+Ni = 10          # Number of inhibitory cells
 epsilon = 0.4098    # Rate of sparseness. This value is calculated with N = 2000
 # epsilon = 0.2577	# Rate of sparseness. This value is calculated with N = 4000	
 Ce = Ne*epsilon     # Number of connections receiving from excitatory neurons
@@ -51,13 +51,13 @@ dt = 0.1 * ms		# Timesteps of neurongroup
 # g = 3
 # Vext = 2
 
-# State B
-g = 6
-Vext = 4
-# 
-# # State C
-# g = 5
-# Vext = 2
+# # State B
+# g = 6
+# Vext = 4
+
+# State C
+g = 5
+Vext = 2
 
 # # State D
 # g = 4.5
@@ -80,21 +80,21 @@ neurons = NeuronGroup(Ne+Ni, eqs, dt=dt, threshold='v>Theta',
 group_e = neurons[:Ne]
 group_i = neurons[Ne:]
 
-S_e = Synapses(group_e, group_e, pre='v_post += J')
-S_e.connect('i!=j', p=epsilon)
-S_e.delay = D
-
-S_ei = Synapses(group_i, group_e, pre='v_post += -g*J')
-S_ei.connect('i!=j', p=epsilon)
-S_ei.delay = D
-
-S_i = Synapses(group_i, group_i, pre='v_post += -g*J')
-S_i.connect('i!=j', p=epsilon)
-S_i.delay = D
-
-S_ie = Synapses(group_e, group_i, pre='v_post += J')
-S_ie.connect('i!=j', p=epsilon)
-S_ie.delay = D
+# S_e = Synapses(group_e, group_e, pre='v_post += J')
+# S_e.connect('i!=j', p=epsilon)
+# S_e.delay = D
+# 
+# S_ei = Synapses(group_i, group_e, pre='v_post += -g*J')
+# S_ei.connect('i!=j', p=epsilon)
+# S_ei.delay = D
+# 
+# S_i = Synapses(group_i, group_i, pre='v_post += -g*J')
+# S_i.connect('i!=j', p=epsilon)
+# S_i.delay = D
+# 
+# S_ie = Synapses(group_e, group_i, pre='v_post += J')
+# S_ie.connect('i!=j', p=epsilon)
+# S_ie.delay = D
 
 def visualise_connectivity(S_e):
 	Ns = len(S_e.source)
@@ -136,8 +136,8 @@ def visualise_total_connectivity(S_e, S_i, S_ei, S_ie):
 # visualise_connectivity(S_ie)
 
 # # Total connectivity. Only useful when N is small
-if Ne+Ni < 500:
-	visualise_total_connectivity(S_e, S_i, S_ei, S_ie)
+# if Ne+Ni < 500:
+# 	visualise_total_connectivity(S_e, S_i, S_ei, S_ie)
 
 M_e = StateMonitor(group_e, 'v', record=True)
 M_i= StateMonitor(group_i, 'v', record=True)

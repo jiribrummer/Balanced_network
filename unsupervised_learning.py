@@ -12,21 +12,22 @@ Tau_m = 20 * ms     # Membrane time constant
 Vleak = -75 * mV    # Resting membrance potential
 gleak = 10 * nS     # Leak conductance
 gexc = 1 * nS       # Conductance of excitatory neurons
-ginh = 3 * nS      # Conductance of inhibitory neurons
+ginh = 12 * nS       # Conductance of inhibitory neurons
 Eexc = 0 * mV       # Reversal potantial excitatory neurons
 Einh = -80 * mV     # Reversal potantial inhbitory neurons
-N_e = 800           # Number of excitatory input neurons (in paper 3600 used)
-N_i = 200           # Number of inhibitory input neurons (in paper 900 used)
+N_e = 800      # Number of excitatory input neurons (in paper 3600 used)
+N_i = 200      # Number of inhibitory input neurons (in paper 900 used)
 C_m = Tau_m * gleak #
 
-Tau_rp = 2*ms       # Refractory period
-Theta = -50*mV      # Threshold
-Vr = -55*mV         # Reset value after threshold is reached
+Tau_rp = 5 * ms       # Refractory period
+Theta = -50 * mV      # Threshold
+Vr = -55 * mV         # Reset value after threshold is reached
 tau_exc = 5 * ms
 tau_inh = 10 * ms
-epsilon = .2284263959 # in paper 0.05 used, but scaled for N = 1000 (Golomb 2000)
+epsilon = .1914893617 # in paper 0.05 used, but scaled for N = 1000 (Golomb 2000)
+# epsilon = .05
 
-Duration = 600 * ms
+Duration = 1200 * ms
 
 # Integrate and Fire neuron equation
 eqs = """
@@ -45,46 +46,54 @@ group_i = neurons[N_e:]
 
 
 # # Inupt stimuli
-P = PoissonGroup(1, 300 * Hz)
+P = PoissonGroup(N_e+N_i, 300 * Hz)
 
 # # Connect input to neurons
 S_input = Synapses(P, neurons,
              '''w : siemens''',
-             pre='''gexc += w''',
-             connect=True)
-S_input.w = 1 * nS
+             pre='''gexc += w''')
+for i in range(len(P)):
+    S_input.connect(i,i)
+S_input.w = 16 * nS
+    
 
 S_e = Synapses(group_e, group_e,
                '''w : siemens''',
                pre='gexc += w')
 S_e.connect('i!=j', p=epsilon)
-S_e.w = gexc
 for i in range(len(S_e.delay)):
     S_e.delay[i] = (random.uniform(.1, 5.0) * ms)
+for j in range(len(S_e.w)):
+    S_e.w[j] = random.gauss(gexc, gexc/3)
 
 S_ei = Synapses(group_i, group_e,
                 '''w : siemens''',
                 pre='ginh += w')
 S_ei.connect('i!=j', p=epsilon)
-S_ei.w = ginh
 for i in range(len(S_ei.delay)):
     S_ei.delay[i] = (random.uniform(.1, 5.0) * ms)
+for j in range(len(S_ei.w)):
+    S_ei.w[j] = random.gauss(ginh, ginh/3)
 
 S_i = Synapses(group_i, group_i,
                '''w : siemens''',
                pre='ginh += w')
 S_i.connect('i!=j', p=epsilon)
-S_i.w = ginh
 for i in range(len(S_i.delay)):
     S_i.delay[i] = (random.uniform(.1, 5.0) * ms)
+for j in range(len(S_i.w)):
+    S_i.w[j] = random.gauss(ginh, ginh/3)
 
 S_ie = Synapses(group_e, group_i,
                 '''w : siemens''',
                 pre='gexc += w')
 S_ie.connect('i!=j', p=epsilon)
-S_ie.w = gexc
 for i in range(len(S_ie.delay)):
     S_ie.delay[i] = (random.uniform(.1, 5.0) * ms)
+for j in range(len(S_ie.w)):
+    S_ie.w[j] = random.gauss(gexc, gexc/3)
+
+
 
 def visualise_total_connectivity(S_e, S_i, S_ei, S_ie):
 	Ns = len(S_e.source) + len(S_i.source)
@@ -153,7 +162,7 @@ def determineRates(N):
 # and produces replica of Yger Fig 2A.
 # s_mon_e = SpikeMonitor(input)
 # s_mon_i = SpikeMonitor(input_inh)
-M = StateMonitor(neurons, 'v', record=[0])
+M = StateMonitor(neurons, 'v', record=[0, 10, 850, 900])
 # mon = StateMonitor(S_e, 'w', record=True)
 SM = SpikeMonitor(neurons)
 PRM = PopulationRateMonitor(neurons)
@@ -166,7 +175,7 @@ PRM = PopulationRateMonitor(neurons)
 run(Duration, report='stdout')
 
 figure()
-randomsample = random.sample(xrange(N_e+N_i), 50)
+randomsample = random.sample(xrange(N_e), 25)
 plotlist_t = []
 plotlist_i = []
 for n in range(len(SM.i)):
@@ -174,29 +183,31 @@ for n in range(len(SM.i)):
 		plotlist_t.append(SM.t[n]/ms)
 		plotlist_i.append(randomsample.index(SM.i[n]))
 
-subplot(211)
-title('Raster plot of the spikes of a random sample of 50 neurons over time')
+subplot(311)
+title('Raster plot of the spikes of a random sample of 25 excitatory neurons over time')
 ylabel('neuron index')
 plot(plotlist_t, plotlist_i, '.k')
 
-subplot(212)
+randomsample = random.sample(xrange(N_e, N_e + N_i), 25)
+plotlist_t = []
+plotlist_i = []
+for n in range(len(SM.i)):
+	if SM.i[n] in randomsample:
+		plotlist_t.append(SM.t[n]/ms)
+		plotlist_i.append(randomsample.index(SM.i[n]))
+
+subplot(312)
+title('Raster plot of the spikes of a random sample of 25 inhibitory neurons over time')
+ylabel('neuron index')
+plot(plotlist_t, plotlist_i, '.k')
+
+subplot(313)
 
 title('Global activity of system over time')
 ylabel('Frequency')
 xlabel('time (ms)')
 # plot(PRM_e.t/ms, PRM_e.rate*Ne/10000)
 plot(PRM.t/ms, PRM.rate)
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -231,10 +242,30 @@ def visualise_connectivity(S):
 # # V-t plots of 4 random excitatory and inhobitory single neurons
 figure()
 
+subplot(221)
 title('Excitatory neuron')
 plot(M[0].t/ms, M[0].v)
 xlabel('Time (ms)')
 ylabel('v')
+
+subplot(223)
+title('Excitatory neuron')
+plot(M[10].t/ms, M[10].v)
+xlabel('Time (ms)')
+ylabel('v')
+
+subplot(222)
+title('Inhibitory neuron')
+plot(M[850].t/ms, M[850].v)
+xlabel('Time (ms)')
+ylabel('v')
+
+subplot(224)
+title('Inhibitory neuron')
+plot(M[900].t/ms, M[900].v)
+xlabel('Time (ms)')
+ylabel('v')
+
 
 # figure()
 
