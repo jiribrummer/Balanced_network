@@ -1,6 +1,8 @@
 
 from brian2 import *
+import pylab
 import random
+
 
 # # Initialize neuron parameters
 Tau_e = 50*ms       # Excitation period
@@ -30,7 +32,7 @@ neuron = NeuronGroup(1, eqs, dt=dt, threshold='v>Theta',
 M_e = StateMonitor(neuron, 'v', record=True)
 run(50 * ms, report='stdout')
 
-figure(1)
+fig = figure()
 
 
 
@@ -38,4 +40,7 @@ title('tau = 50 ms')
 plot(M_e.t/ms, M_e.v[0])
 xlabel('time (ms)')
 
-show()
+
+fig.savefig('test8.png')
+
+# show()
