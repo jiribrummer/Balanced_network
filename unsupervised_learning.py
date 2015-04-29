@@ -16,8 +16,8 @@ gexc = 1 * nS       # Conductance of excitatory neurons
 # gext = 8 * nS
 Eexc = 0 * mV       # Reversal potantial excitatory neurons
 Einh = -80 * mV     # Reversal potantial inhbitory neurons
-N_e = 800      # Number of excitatory input neurons (in paper 3600 used)
-N_i = 200     # Number of inhibitory input neurons (in paper 900 used)
+N_e = 3600      # Number of excitatory input neurons (in paper 3600 used)
+N_i = 900     # Number of inhibitory input neurons (in paper 900 used)
 C_m = Tau_m * gleak #
 
 Tau_rp = 5 * ms       # Refractory period
@@ -25,8 +25,8 @@ Theta = -50 * mV      # Threshold
 Vr = -55 * mV         # Reset value after threshold is reached
 tau_exc = 5 * ms
 tau_inh = 10 * ms
-epsilon = .1914893617 # in paper 0.05 used, but scaled for N = 1000 (Golomb 2000)
-# epsilon = .05
+# epsilon = .1914893617 # in paper 0.05 used, but scaled for N = 1000 (Golomb 2000)
+epsilon = .05
 
 Duration = 600 * ms
 
@@ -42,9 +42,9 @@ dginh/dt = -ginh/tau_inh : siemens
 
 
 
-for a in range(1,11):
+for a in range(2,3):
     gext = a * nS
-    for b in range(1,11):
+    for b in range(11,12):
         ginh = b * nS
         
         # IF neurons. 
@@ -176,7 +176,10 @@ for a in range(1,11):
         # # # # M = StateMonitor(neurons, 'v', record=[0, 10, 85, 90])
         # mon = StateMonitor(S_e, 'w', record=True)
         SM = SpikeMonitor(neurons)
+        # PRM_e = PopulationRateMonitor(group_e)
+        # PRM_i = PopulationRateMonitor(group_i)
         PRM = PopulationRateMonitor(neurons)
+        
         
         # # Main loop to run simulation
         # for i in range(2):
@@ -201,7 +204,7 @@ for a in range(1,11):
                 plotlist_i.append(randomsample.index(SM.i[n]))
         
         subplot(311)
-        title('gext = %s ginh = %s; 25 exc neurons; 25 inh neurons; global activity '%(gext, ginh))
+        title('gext = %s ginh = %s; 25 exc neurons; 25 inh neurons; global activity exc; inh'%(gext, ginh))
         ylabel('neuron index')
         plot(plotlist_t, plotlist_i, '.k')
         
@@ -222,6 +225,13 @@ for a in range(1,11):
         xlabel('time (ms)')
         # plot(PRM_e.t/ms, PRM_e.rate*Ne/10000)
         plot(PRM.t/ms, PRM.rate)
+
+        # 
+        # subplot(414)
+        # ylabel('Frequency')
+        # xlabel('time (ms)')
+        # # plot(PRM_e.t/ms, PRM_e.rate*Ne/10000)
+        # plot(PRM_i.t/ms, PRM_i.rate)
         
         fig.savefig(figname + '.png', bbox_inches='tight')
         exec("%s = fig"%(figname))
