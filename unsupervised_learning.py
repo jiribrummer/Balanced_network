@@ -16,8 +16,8 @@ gexc = 1 * nS       # Conductance of excitatory neurons
 # gext = 8 * nS
 Eexc = 0 * mV       # Reversal potantial excitatory neurons
 Einh = -80 * mV     # Reversal potantial inhbitory neurons
-N_e = 100      # Number of excitatory input neurons (in paper 3600 used)
-N_i = 25     # Number of inhibitory input neurons (in paper 900 used)
+N_e = 800      # Number of excitatory input neurons (in paper 3600 used)
+N_i = 200     # Number of inhibitory input neurons (in paper 900 used)
 C_m = Tau_m * gleak #
 
 Tau_rp = 5 * ms       # Refractory period
@@ -42,9 +42,9 @@ dginh/dt = -ginh/tau_inh : siemens
 
 
 
-for a in range(1,3):
+for a in range(1,11):
     gext = a * nS
-    for b in range(1,3):
+    for b in range(1,11):
         ginh = b * nS
         
         # IF neurons. 
