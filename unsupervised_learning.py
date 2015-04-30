@@ -16,8 +16,8 @@ gexc = 1 * nS       # Conductance of excitatory neurons
 # gext = 8 * nS
 Eexc = 0 * mV       # Reversal potantial excitatory neurons
 Einh = -80 * mV     # Reversal potantial inhbitory neurons
-N_e = 3600      # Number of excitatory input neurons (in paper 3600 used)
-N_i = 900     # Number of inhibitory input neurons (in paper 900 used)
+N_e = 800      # Number of excitatory input neurons (in paper 3600 used)
+N_i = 200     # Number of inhibitory input neurons (in paper 900 used)
 C_m = Tau_m * gleak #
 
 Tau_rp = 5 * ms       # Refractory period
@@ -25,8 +25,8 @@ Theta = -50 * mV      # Threshold
 Vr = -55 * mV         # Reset value after threshold is reached
 tau_exc = 5 * ms
 tau_inh = 10 * ms
-# epsilon = .1914893617 # in paper 0.05 used, but scaled for N = 1000 (Golomb 2000)
-epsilon = .05
+epsilon = .1914893617 # in paper 0.05 used, but scaled for N = 1000 (Golomb 2000)
+# epsilon = .05
 
 Duration = 600 * ms
 
@@ -38,13 +38,9 @@ dgexc/dt = -gexc/tau_exc : siemens
 dginh/dt = -ginh/tau_inh : siemens
 """
 
-
-
-
-
-for a in range(2,3):
+for a in arange(1.5,6.5,.5):
     gext = a * nS
-    for b in range(11,12):
+    for b in arange(2,6.5,.5):
         ginh = b * nS
         
         # IF neurons. 
@@ -190,7 +186,7 @@ for a in range(2,3):
 
         run(Duration, report='stdout')
         
-        figname = 'fig' + str(a) + str(b)
+        figname = 'fig' + str(int(10*a)) + str(int(10*b))
         fig = figure()
         # exec("%s = figure()"%(figname))
         print type(figname)
