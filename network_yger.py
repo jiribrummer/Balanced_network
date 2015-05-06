@@ -13,11 +13,11 @@ Vleak = -75 * mV    # Resting membrance potential
 gleak = 10 * nS     # Leak conductance
 gexc = 1 * nS       # Conductance of excitatory neurons
 ginh = 2 * nS       # Conductance of inhibitory neurons
-gext = 10 * nS       # Conductance of external excitatory input
+gext = 5 * nS       # Conductance of external excitatory input
 Eexc = 0 * mV       # Reversal potantial excitatory neurons
 Einh = -80 * mV     # Reversal potantial inhbitory neurons
-N_e = 2      # Number of excitatory input neurons (in paper 3600 used)
-N_i = 1     # Number of inhibitory input neurons (in paper 900 used)
+N_e = 8      # Number of excitatory input neurons (in paper 3600 used)
+N_i = 2    # Number of inhibitory input neurons (in paper 900 used)
 C_m = Tau_m * gleak #
 
 Tau_rp = 5 * ms       # Refractory period
@@ -113,25 +113,9 @@ run(Duration, report='stdout')
 
 
 ##############################################################################
-## Code from https://groups.google.com/forum/#!searchin/briansupport/ISI/briansupport/xeF-w0aII8M/at47M2gkBe4J, 1-5-2015
+## Adapted from https://groups.google.com/forum/#!searchin/briansupport/ISI/briansupport/xeF-w0aII8M/at47M2gkBe4J, 1-5-2015
 ##############################################################################
-__all__ = ['get_spikes_from_trains',
-           'get_trains_from_spikes',
-           'get_isi_from_spikes',
-           'get_isi_from_trains',
-           ]
 
-def get_spikes_from_trains(spiketrains):
-    i = []
-    for j, st in enumerate(spiketrains):
-        i.append(ones(len(st), dtype=int)*j)
-    if len(spiketrains)==0:
-        t = array([])
-        i = array([], dtype=int)
-    else:            
-        t = hstack(spiketrains)
-        i = hstack(i)
-    return i, t
 
 def get_trains_from_spikes(i, t, imax=None):
     if len(i):
@@ -163,12 +147,7 @@ def get_isi_from_trains(trains, flat=True):
     else:
         return [diff(t) for t in trains]
     
-def get_isi_from_spikes(i, t, imax=None, flat=True):
-    return get_isi_from_trains(get_trains_from_spikes(i, t, imax=imax), flat=flat)
-    
-if __name__=='__main__':
-    from numpy.random import *
-    from pylab import hist, show
+def calculate_cv():
     # i = randint(10000, size=(1000000,))
     i = SM.i
     # print 'i', i
@@ -177,33 +156,48 @@ if __name__=='__main__':
     # print 't', t
     cvList = get_trains_from_spikes(i, t)
     isi_per_neuron = []
-    print cvList
-    for n in cvList:
-        print array(n)
-        isi_of_neuron = get_isi_from_trains(array(n))
-        print isi_of_neuron
-        isi_per_neuron.append(isi_of_neuron)
+    # print isi_per_neuron
+    cv_per_neuron = []
+    emplist = [array([])]
+    # print '1', cvList
+    for n in range(len(cvList)):
+        # print '2', n
+        # print '2,1', mean(n)
+        # print '2,2', type(n)
+        # print 'emplist', emplist
+        emplist[0] = cvList[n]
+        # print emplist
+        isi_of_neuron = get_isi_from_trains(emplist)
+        # print '3', isi_of_neuron
+        mean_isi = mean(isi_of_neuron)
+        # print 'mean_isi: ', mean_isi
+        # print type(mean_isi)
+        if not math.isnan(mean_isi):
+            std_isi = std(isi_of_neuron)
+            # print 'std: ', std_isi
+            CV_of_neuron = std_isi/mean_isi
+            # print 'CV of neuron: ', CV_of_neuron
+            isi_per_neuron.append(array(isi_of_neuron))
+            cv_per_neuron.append(array(CV_of_neuron))
+            # print '4', isi_per_neuron
+            # print 'cv per neuron: ', cv_per_neuron
+    
+    # print 'cv per neuron: ', cv_per_neuron
+    # print '5', isi_per_neuron
+    # print 'cv per neuron: ', cv_per_neuron
+    average_CV = mean(cv_per_neuron)
+    print 'average_CV', average_CV
         
-    print isi_per_neuron
-        
-    from time import time
-    start = time()
-    trains = get_trains_from_spikes(i, t)
-    print trains
-    # print time()-start
-    i, t = get_spikes_from_trains(trains)
-    # print 'i, t', i, t
-    trains2 = get_trains_from_spikes(i, t)
-    i2, t2 = get_spikes_from_trains(trains)
-    # print amax(abs(i-i2)), amax(abs(t-t2))
-    isi = get_isi_from_trains(trains)
-    hist(isi, 100)
+
+    # print 'isi', isi
+    # print type(isi), type(cv_per_neuron)
+    # hist(isi, 100)
+    hist(cv_per_neuron, 20, normed = True)
     show()
+   
+calculate_cv()
+
 ##############################################################################
-
-def calculateCV(i, t):
-    pass
-
 
 fig = figure()
 
