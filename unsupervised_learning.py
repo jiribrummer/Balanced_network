@@ -25,8 +25,8 @@ Theta = -50 * mV      # Threshold
 Vr = -55 * mV         # Reset value after threshold is reached
 tau_exc = 5 * ms
 tau_inh = 10 * ms
-epsilon = .1914893617 # in paper 0.05 used, but scaled for N = 1000 (Golomb 2000)
-# epsilon = .05
+# epsilon = .1914893617 # in paper 0.05 used, but scaled for N = 1000 (Golomb 2000)
+epsilon = .05
 
 Duration = 600 * ms
 
@@ -109,24 +109,51 @@ def calculate_cv():
             # print 'cv per neuron: ', cv_per_neuron
     
     # print 'cv per neuron: ', cv_per_neuron
-    # print '5', isi_per_neuron
+    # print 'isi per neuron: ', isi_per_neuron
     # print 'cv per neuron: ', cv_per_neuron
     average_CV = mean(cv_per_neuron)
-    print 'average_CV', average_CV
+    # print 'average_CV', average_CV
+    print cv_per_neuron
+    print average_CV
+    if cv_per_neuron != []:
+        figname = 'hist' + str(int(10*a)) + str(int(10*b))
+        fig = figure()
+        title('gext = %s ginh = %s; Coefficient of variance'%(gext, ginh))
+        xlabel('CV value')
+        ylabel('frequency')
+        hist(cv_per_neuron, 50, normed = True)
         
-
-    # print 'isi', isi
-    # print type(isi), type(cv_per_neuron)
-    # hist(isi, 100)
-    hist(cv_per_neuron, 20, normed = True)
+        fig.savefig(figname + '.png', bbox_inches='tight')
+    
     return average_CV
    
 
 ##############################################################################   
 
-for a in arange(2,3):
+ztemp = []              # Matrix where CV values will be stored in
+yvalues = []            # List where gext values will be stored in
+xvalues = []            # List where ginh values will be stored in
+
+gext_lower = 1          # Lower bound of gext for loop
+gext_upper = 10          # Upper bound of gext for loop
+
+ginh_lower = 1             # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
+ginh_upper = 10
+
+for i in arange(gext_lower, gext_upper+1):
+    yvalues.append(i)   # Add gext value to y-axis list
+
+for j in arange(ginh_lower, ginh_upper+1):
+    xvalues.append(j)   # Add ginh value to x-axis list
+
+
+for a in arange(gext_lower,gext_upper):
+    ztemp.append([])    # Add row to matrix
+    
     gext = a * nS
-    for b in arange(2,3):
+    
+    for b in arange(ginh_lower,ginh_upper):
+        
         ginh = b * nS
         
         # IF neurons. 
@@ -188,25 +215,6 @@ for a in arange(2,3):
             S_ie.w[j] = random.gauss(gexc, gexc/3)
         
         
-        
-        # def visualise_total_connectivity(S_e, S_i, S_ei, S_ie):
-        #     Ns = len(S_e.source) + len(S_i.source)
-        #     Nt = len(S_e.target) + len(S_i.target)
-        #     figure()
-        #     newvar_i = numpy.append(numpy.append(numpy.append(S_e.i, S_i.i + len(S_e.source)), S_ei.i + len(S_e.source)), S_ie.i)
-        #     newvar_j = numpy.append(numpy.append(numpy.append(S_e.j, S_i.j + len(S_e.source)), S_ei.j), S_ie.j + len(S_e.source))
-        #     plot(newvar_i, newvar_j, 'ok')
-        #     grid(which='both')
-        #     xlim(-1, Ns)
-        #     ylim(-1, Nt)
-        #     xlabel('Source neuron index')
-        #     ylabel('Target neuron index')
-        
-        # visualise_total_connectivity(S_e, S_i, S_ei, S_ie)
-        
-        
-        
-        
         # Function to determine rates for excitatory input neurons
         # def determineRates(N):
         #     Nu_i = []
@@ -261,22 +269,13 @@ for a in arange(2,3):
         # PRM_e = PopulationRateMonitor(group_e)
         # PRM_i = PopulationRateMonitor(group_i)
         PRM = PopulationRateMonitor(neurons)
-        
-        
-        # # Main loop to run simulation
-        # for i in range(2):
-            # # input.rates = determineRates(N_e)
-            # # run(Duration/10, report='stdout')
-
-
 
         run(Duration, report='stdout')
         
-        figname = 'fig' + str(int(10*a)) + str(int(10*b))
-        fig = figure()
+        figname2 = 'fig' + str(int(10*a)) + str(int(10*b))
+        fig2 = figure()
         # exec("%s = figure()"%(figname))
-        print type(figname)
-        print type(fig)
+
         randomsample = random.sample(xrange(N_e), 25)
         plotlist_t = []
         plotlist_i = []
@@ -315,110 +314,29 @@ for a in arange(2,3):
         # # plot(PRM_e.t/ms, PRM_e.rate*Ne/10000)
         # plot(PRM_i.t/ms, PRM_i.rate)
         
-        # fig.savefig(figname + '.png', bbox_inches='tight')
-        exec("%s = fig"%(figname))
-        av_cv = calculate_cv()
-        print av_cv
+        fig2.savefig(figname2 + '.png', bbox_inches='tight')
+        # exec("%s = fig"%(figname))
         
-        show()
+        
+        av_cv = calculate_cv()
+        # print av_cv
+        ztemp[a-gext_lower].append(av_cv)
+        # print ztemp
+        
+zvalues = array(ztemp)
+# print zvalues
 
-     
+colorplot = figure()
+title('CV values of different gext and ginh values')
+xlabel('ginh (ns)')
+ylabel('gext (nS)')
+pcolor(array(xvalues), array(yvalues), zvalues, cmap='RdBu')
+colorbar()
 
-# Plots of which most are not in use, but can be used for
-# neuron and network visualization
-
-# def visualise_connectivity(S):
-	# Ns = len(S.source)
-	# Nt = len(S.target)
-	# figure(figsize=(10, 4))
-	# subplot(121)
-	# plot(zeros(Ns), arange(Ns), 'ok', ms=10)
-	# plot(ones(Nt), arange(Nt), 'ok', ms=10)
-	# for i, j in zip(S.i, S.j):
-	# 	plot([0, 1], [i, j], '-k')
-	# xticks([0, 1], ['Source', 'Target'])
-	# ylabel('Neuron index')
-	# xlim(-0.1, 1.1)
-	# ylim(-1, max(Ns, Nt))
-	# subplot(122)
-	# plot(S.i, S.j, 'ok')
-	# xlim(-1, Ns)
-	# ylim(-1, Nt)
-	# xlabel('Source neuron index')
-	# ylabel('Target neuron index')
-
-
-# visualise_connectivity(S_input)
-# visualise_connectivity(S_i)
-
-
-# # # V-t plots of 4 random excitatory and inhobitory single neurons
-# figure()
-# 
-# subplot(221)
-# title('Excitatory neuron')
-# plot(M[0].t/ms, M[0].v)
-# xlabel('Time (ms)')
-# ylabel('v')
-# 
-# subplot(223)
-# title('Excitatory neuron')
-# plot(M[10].t/ms, M[10].v)
-# xlabel('Time (ms)')
-# ylabel('v')
-# 
-# subplot(222)
-# title('Inhibitory neuron')
-# plot(M[85].t/ms, M[85].v)
-# xlabel('Time (ms)')
-# ylabel('v')
-# 
-# subplot(224)
-# title('Inhibitory neuron')
-# plot(M[90].t/ms, M[90].v)
-# xlabel('Time (ms)')
-# ylabel('v')
-
-
-# figure()
-
-# subplot(311)
-# plot(S.w / gmax, '.k');
-# ylabel('Weight / gmax')
-# xlabel('Synapse index')
-# subplot(312)
-# hist(S.w / gmax, 20)
-# xlabel('Weight / gmax')
-# subplot(313)
-# plot(mon.t/second, mon.w.T/gmax)
-# xlabel('Time (s)')
-# ylabel('Weight / gmax')
-# tight_layout()
-
-# # plot of excitatory input 
-# figure()
-# plot(s_mon_e.t/ms, s_mon_e.i, '.')
-# 
-# # plot of inhibitory input 
-# figure()
-# plot(s_mon_i.t/ms, s_mon_i.i, '.')
-
-# 
-# figure()
-# plot(MS.t/ms, MS.i, '.')
-
-
-# figure()
-# hist(Nu_i)
-#
-
-# # plot for figure 2B
-# figure()
-# scatter(mon.t/ms, zeros(200))
-# # , mon.w[0]
-
+colorplot.savefig('colorplot.png', bbox_inches='tight')
 
 # show()
+
 
 
 print 'Finished'
