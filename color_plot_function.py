@@ -4,45 +4,53 @@
 from brian2 import *
 import random
 
-zvalue = [array([])]
-index = -1
-index2 = -1
-for a in arange(2,4):
+ztemp = []
+
+for a in arange(5,7):
     print a
-    print index
-    index += 1
-    print index
-    gext = a * nS
-    zvalue[index]=[]
-    print zvalue
-    for b in arange(2,4):
+    print a-5
+    print ztemp
+    # gext = a * nS
+    ztemp.append([])
+    print ztemp
+    for b in arange(15,17):
         print b
-        print index2
-        ginh = b * nS
-        print zvalue
+        # ginh = b * nS
+        print ztemp
+        ztemp[a-5].append(b*a)
+        print ztemp
         
-
-
-
+zvalues = array(ztemp)
+print zvalues
+#         
 # 
-# # ginh = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-# # gext = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-# 
+# print 'finished'
+
+
+
+
+# ginh = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+# gext = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
 # ginh = array([1, 2, 3, 4])
 # gext = array([1, 2, 3, 4])
-# CV = array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])
+CV = array([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]])
+print CV
 # 
 # 
-# pcolor(ginh, gext, CV, cmap='RdBu')
-# colorbar()
-# show()
 
+pcolor(zvalues, cmap='RdBu')
+colorbar()
+
+
+show()
+# 
 # import matplotlib.pyplot as plt
 # import numpy as np
 # 
 # # make these smaller to increase the resolution
 # dx, dy = 0.15, 0.05
-# 
+# # 
 # # generate 2 2d grids for the x & y bounds
 # y, x = np.mgrid[slice(-3, 3 + dy, dy),
 #                 slice(-3, 3 + dx, dx)]
@@ -51,7 +59,7 @@ for a in arange(2,4):
 # # Therefore, remove the last value from the z array.
 # z = z[:-1, :-1]
 # z_min, z_max = -np.abs(z).max(), np.abs(z).max()
-# 
+# # 
 # 
 # 
 # plt.subplot(2, 2, 1)
@@ -61,4 +69,3 @@ for a in arange(2,4):
 # plt.axis([x.min(), x.max(), y.min(), y.max()])
 # plt.colorbar()
 # 
-# plt.show()
