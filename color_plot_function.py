@@ -4,25 +4,26 @@
 from brian2 import *
 import random
 
-ztemp = []
 
-for a in arange(5,7):
-    print a
-    print a-5
-    print ztemp
-    # gext = a * nS
-    ztemp.append([])
-    print ztemp
-    for b in arange(15,17):
-        print b
-        # ginh = b * nS
-        print ztemp
-        ztemp[a-5].append(b*a)
-        print ztemp
-        
-zvalues = array(ztemp)
-print zvalues
+# ztemp = []
+# 
+# for a in arange(5,7):
+#     print a
+#     print a-5
+#     print ztemp
+#     # gext = a * nS
+#     ztemp.append([])
+#     print ztemp
+#     for b in arange(15,17):
+#         print b
+#         # ginh = b * nS
+#         print ztemp
+#         ztemp[a-5].append(b*a)
+#         print ztemp
 #         
+# zvalues = array(ztemp)
+# print zvalues
+# #         
 # 
 # print 'finished'
 
@@ -35,11 +36,13 @@ print zvalues
 # ginh = array([1, 2, 3, 4])
 # gext = array([1, 2, 3, 4])
 CV = array([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]])
-print CV
+# print CV
 # 
-# 
+# 'RdBu'
 
-pcolor(zvalues, cmap='RdBu')
+colormap = cm.gray
+
+pcolor(CV, cmap= colormap)
 colorbar()
 
 

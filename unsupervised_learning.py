@@ -2,6 +2,8 @@
 
 from brian2 import *
 import random
+import numpy.ma as ma
+import matplotlib as mpl 
 
 # Start simulation
 print "start unsupervised learning"
@@ -135,10 +137,10 @@ yvalues = []            # List where gext values will be stored in
 xvalues = []            # List where ginh values will be stored in
 
 gext_lower = 1          # Lower bound of gext for loop
-gext_upper = 10          # Upper bound of gext for loop
+gext_upper = 3         # Upper bound of gext for loop
 
 ginh_lower = 1             # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
-ginh_upper = 10
+ginh_upper = 3
 
 for i in arange(gext_lower, gext_upper+1):
     yvalues.append(i)   # Add gext value to y-axis list
@@ -323,14 +325,16 @@ for a in arange(gext_lower,gext_upper):
         ztemp[a-gext_lower].append(av_cv)
         # print ztemp
         
-zvalues = array(ztemp)
+zvalues = ma.array(ztemp, mask=np.isnan(ztemp))
 # print zvalues
 
 colorplot = figure()
 title('CV values of different gext and ginh values')
 xlabel('ginh (ns)')
 ylabel('gext (nS)')
-pcolor(array(xvalues), array(yvalues), zvalues, cmap='RdBu')
+colormap = mpl.cm.RdBu
+colormap.set_bad('k', 1.)
+pcolormesh(array(xvalues), array(yvalues), zvalues, cmap = colormap)
 colorbar()
 
 colorplot.savefig('colorplot.png', bbox_inches='tight')
