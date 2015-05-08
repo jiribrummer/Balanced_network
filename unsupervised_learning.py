@@ -19,8 +19,8 @@ gexc = 1 * nS       # Conductance of excitatory neurons
 # gext = 8 * nS
 Eexc = 0 * mV       # Reversal potantial excitatory neurons
 Einh = -80 * mV     # Reversal potantial inhbitory neurons
-N_e = 100      # Number of excitatory input neurons (in paper 3600 used)
-N_i = 25     # Number of inhibitory input neurons (in paper 900 used)
+N_e = 800      # Number of excitatory input neurons (in paper 3600 used)
+N_i = 200     # Number of inhibitory input neurons (in paper 900 used)
 C_m = Tau_m * gleak #
 
 Tau_rp = 5 * ms       # Refractory period
@@ -28,8 +28,8 @@ Theta = -50 * mV      # Threshold
 Vr = -55 * mV         # Reset value after threshold is reached
 tau_exc = 5 * ms
 tau_inh = 10 * ms
-# epsilon = .1914893617 # in paper 0.05 used, but scaled for N = 1000 (Golomb 2000)
-epsilon = .05
+epsilon = .1914893617 # in paper 0.05 used, but scaled for N = 1000 (Golomb 2000)
+# epsilon = .05
 
 Duration = 600 * ms
 
@@ -77,6 +77,7 @@ def get_isi_from_trains(trains, flat=True):
         return [diff(t) for t in trains]
     
 def calculate_cv():
+    list_for_all_isi = []
     # i = randint(10000, size=(1000000,))
     i = SM.i
     # print 'i', i
@@ -98,6 +99,10 @@ def calculate_cv():
         # print emplist
         isi_of_neuron = get_isi_from_trains(emplist)
         # print '3', isi_of_neuron
+        
+        for element in isi_of_neuron:
+            list_for_all_isi.append(element)
+        
         mean_isi = mean(isi_of_neuron)
         # print 'mean_isi: ', mean_isi
         # print type(mean_isi)
@@ -125,7 +130,26 @@ def calculate_cv():
         xlabel('CV value')
         ylabel('frequency')
         hist(cv_per_neuron, 50, normed = True)
+        fig.savefig(figname + '.png', bbox_inches='tight')
+###############################################################
+## Histograms of ISI
+###############################################################
+        figname = 'hist_ISI_' + str(int(10*a)) + str(int(10*b))
+        fig = figure()
+        title('gext = %s ginh = %s; ISI'%(gext, ginh))
+        xlabel('ISI value')
+        ylabel('frequency')
+        hist(array(list_for_all_isi), 50, normed = True)
+
+        fig.savefig(figname + '.png', bbox_inches='tight')
         
+        figname = 'hist2_ISI_' + str(int(10*a)) + str(int(10*b))
+        fig = figure()
+        title('gext = %s ginh = %s; ISI with smaller xrange'%(gext, ginh))
+        xlabel('ISI value')
+        ylabel('frequency')
+        hist(array(list_for_all_isi), 50, range=[0, 100], normed = True)
+
         fig.savefig(figname + '.png', bbox_inches='tight')
     
     return average_CV
@@ -137,11 +161,11 @@ ztemp = []              # Matrix where CV values will be stored in
 yvalues = []            # List where gext values will be stored in
 xvalues = []            # List where ginh values will be stored in
 
-gext_lower = 1          # Lower bound of gext for loop
-gext_upper = 4         # Upper bound of gext for loop
+gext_lower = 2          # Lower bound of gext for loop
+gext_upper = 3        # Upper bound of gext for loop
 
-ginh_lower = 1             # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
-ginh_upper = 4
+ginh_lower = 4             # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
+ginh_upper = 5
 
 for i in arange(gext_lower, gext_upper+1):
     yvalues.append(i)   # Add gext value to y-axis list
