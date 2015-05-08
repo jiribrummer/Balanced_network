@@ -3,7 +3,8 @@
 from brian2 import *
 import random
 import numpy.ma as ma
-import matplotlib as mpl 
+import matplotlib as mpl
+import scipy.io as sio
 
 # Start simulation
 print "start unsupervised learning"
@@ -137,10 +138,10 @@ yvalues = []            # List where gext values will be stored in
 xvalues = []            # List where ginh values will be stored in
 
 gext_lower = 1          # Lower bound of gext for loop
-gext_upper = 3         # Upper bound of gext for loop
+gext_upper = 4         # Upper bound of gext for loop
 
 ginh_lower = 1             # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
-ginh_upper = 3
+ginh_upper = 4
 
 for i in arange(gext_lower, gext_upper+1):
     yvalues.append(i)   # Add gext value to y-axis list
@@ -338,6 +339,8 @@ pcolormesh(array(xvalues), array(yvalues), zvalues, cmap = colormap)
 colorbar()
 
 colorplot.savefig('colorplot.png', bbox_inches='tight')
+
+sio.savemat('Matlab_file.mat', {'zvalues':ztemp, 'xvalues':xvalues, 'yvalues':yvalues})
 
 # show()
 
