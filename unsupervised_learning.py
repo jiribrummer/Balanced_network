@@ -143,14 +143,14 @@ def calculate_cv():
 
         fig.savefig(figname + '.png', bbox_inches='tight')
         
-        figname = 'hist2_ISI_' + str(int(10*a)) + str(int(10*b))
-        fig = figure()
-        title('gext = %s ginh = %s; ISI with smaller xrange'%(gext, ginh))
-        xlabel('ISI value')
-        ylabel('frequency')
-        hist(array(list_for_all_isi), 50, range=[0, 100], normed = True)
-
-        fig.savefig(figname + '.png', bbox_inches='tight')
+        # figname = 'hist2_ISI_' + str(int(10*a)) + str(int(10*b))
+        # fig = figure()
+        # title('gext = %s ginh = %s; ISI with smaller xrange'%(gext, ginh))
+        # xlabel('ISI value')
+        # ylabel('frequency')
+        # hist(array(list_for_all_isi), 50, range=[0, 100], normed = True)
+        # 
+        # fig.savefig(figname + '.png', bbox_inches='tight')
     
     return average_CV
    
@@ -161,11 +161,11 @@ ztemp = []              # Matrix where CV values will be stored in
 yvalues = []            # List where gext values will be stored in
 xvalues = []            # List where ginh values will be stored in
 
-gext_lower = 2          # Lower bound of gext for loop
-gext_upper = 3        # Upper bound of gext for loop
+gext_lower = 1          # Lower bound of gext for loop
+gext_upper = 31        # Upper bound of gext for loop
 
-ginh_lower = 4             # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
-ginh_upper = 5
+ginh_lower = 1             # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
+ginh_upper = 31
 
 for i in arange(gext_lower, gext_upper+1):
     yvalues.append(i)   # Add gext value to y-axis list
@@ -174,12 +174,12 @@ for j in arange(ginh_lower, ginh_upper+1):
     xvalues.append(j)   # Add ginh value to x-axis list
 
 
-for a in arange(gext_lower,gext_upper):
+for a in arange(gext_lower,5,gext_upper):
     ztemp.append([])    # Add row to matrix
     
     gext = a * nS
     
-    for b in arange(ginh_lower,ginh_upper):
+    for b in arange(ginh_lower,5,ginh_upper):
         
         ginh = b * nS
         
