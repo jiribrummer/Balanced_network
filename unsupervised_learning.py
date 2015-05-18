@@ -19,8 +19,8 @@ gexc = 1 * nS       # Conductance of excitatory neurons
 # gext = 8 * nS
 Eexc = 0 * mV       # Reversal potantial excitatory neurons
 Einh = -80 * mV     # Reversal potantial inhbitory neurons
-N_e = 100      # Number of excitatory input neurons (in paper 3600 used)
-N_i = 25     # Number of inhibitory input neurons (in paper 900 used)
+N_e = 1600      # Number of excitatory input neurons (in paper 3600 used)
+N_i = 400     # Number of inhibitory input neurons (in paper 900 used)
 C_m = Tau_m * gleak #
 
 Tau_rp = 5 * ms       # Refractory period
@@ -28,8 +28,8 @@ Theta = -50 * mV      # Threshold
 Vr = -55 * mV         # Reset value after threshold is reached
 tau_exc = 5 * ms
 tau_inh = 10 * ms
-# epsilon = .1914893617 # in paper 0.05 used, but scaled for N = 1000 (Golomb 2000)
-epsilon = .05
+epsilon = .1914893617 # in paper 0.05 used, but scaled for N = 1000 (Golomb 2000)
+# epsilon = .05
 
 Duration = 600 * ms
 
@@ -161,18 +161,18 @@ ztemp = []              # Matrix where CV values will be stored in
 yvalues = []            # List where gext values will be stored in
 xvalues = []            # List where ginh values will be stored in
 
-gext_lower = 1          # Lower bound of gext for loop
-gext_upper = 2        # Upper bound of gext for loop
+gext_lower = 1.5          # Lower bound of gext for loop
+gext_upper = 2.5        # Upper bound of gext for loop
 
-ginh_lower = 1             # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
-ginh_upper = 2
+ginh_lower = 1.5             # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
+ginh_upper = 2.5
 
-stepsize = .4
+stepsize = .5
 
-for i in arange(gext_lower, gext_upper+1, stepsize):
+for i in arange(gext_lower, gext_upper+stepsize, stepsize):
     yvalues.append(i)   # Add gext value to y-axis list
 
-for j in arange(ginh_lower, ginh_upper+1, stepsize):
+for j in arange(ginh_lower, ginh_upper+stepsize, stepsize):
     xvalues.append(j)   # Add ginh value to x-axis list
 
 
@@ -245,18 +245,18 @@ for a in arange(gext_lower,gext_upper,stepsize):
         
         
         # Function to determine rates for excitatory input neurons
-        # def determineRates(N):
-        #     Nu_i = []
-        #     mu = random.randint(0,N-1)
-        #     for i in range(N):
-        #         
-        #         # Equation of Yger 2013, materials & methods, Circular Gaussian simulations.
-        #         # NB. Litteral implementation results in linear distributions. In order to
-        #         # make them circular min(abs(i-mu), (N-abs(i-mu))) is used in stead of
-        #         # abs(i-mu) which is stated in the paper. 
-        #         nu = (50*(exp((float(min(abs(i-mu), (N-abs(i-mu))))**2)/20000)) + 5)
-        #         Nu_i.append(nu)
-        #     return Nu_i * Hz
+        def determineRates(N):
+            Nu_i = []
+            mu = random.randint(0,N-1)
+            for i in range(N):
+                
+                # Equation of Yger 2013, materials & methods, Circular Gaussian simulations.
+                # NB. Litteral implementation results in linear distributions. In order to
+                # make them circular min(abs(i-mu), (N-abs(i-mu))) is used in stead of
+                # abs(i-mu) which is stated in the paper. 
+                nu = (50*(exp((float(min(abs(i-mu), (N-abs(i-mu))))**2)/20000)) + 5)
+                Nu_i.append(nu)
+            return Nu_i * Hz
         
         
         
@@ -356,7 +356,7 @@ for a in arange(gext_lower,gext_upper,stepsize):
         print (a-float(gext_lower))/stepsize
         print a-float(gext_lower)
         print int((a-float(gext_lower))/stepsize)
-        ztemp[int((a-float(gext_lower))/stepsize)+1].append(av_cv)
+        ztemp[int((a-float(gext_lower))/stepsize)].append(av_cv)
         print ztemp
         
 zvalues = ma.array(ztemp, mask=np.isnan(ztemp))
