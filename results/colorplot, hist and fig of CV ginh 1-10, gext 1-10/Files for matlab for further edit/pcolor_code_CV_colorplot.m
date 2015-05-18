@@ -1,6 +1,6 @@
 %% Create CV colorplot 
 
-pcolor(xvalues(1:9),yvalues(1:9),zvalues)
+pcolor(xvalues(1:end-1),yvalues(1:end-1),zvalues)
 
 %% create CV surface plot
 
