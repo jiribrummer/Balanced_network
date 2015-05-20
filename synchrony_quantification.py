@@ -19,8 +19,8 @@ gexc = 1 * nS       # Conductance of excitatory neurons
 # gext = 8 * nS
 Eexc = 0 * mV       # Reversal potantial excitatory neurons
 Einh = -80 * mV     # Reversal potantial inhbitory neurons
-N_e = 800      # Number of excitatory input neurons (in paper 3600 used)
-N_i = 200     # Number of inhibitory input neurons (in paper 900 used)
+N_e = 100     # Number of excitatory input neurons (in paper 3600 used)
+N_i = 25     # Number of inhibitory input neurons (in paper 900 used)
 C_m = Tau_m * gleak #
 
 Tau_rp = 5 * ms       # Refractory period
@@ -28,8 +28,8 @@ Theta = -50 * mV      # Threshold
 Vr = -55 * mV         # Reset value after threshold is reached
 tau_exc = 5 * ms
 tau_inh = 10 * ms
-epsilon = .1914893617 # in paper 0.05 used, but scaled for N = 1000 (Golomb 2000)
-# epsilon = .05
+# epsilon = .1914893617 # in paper 0.05 used, but scaled for N = 1000 (Golomb 2000)
+epsilon = .05
 
 Duration = 600 * ms
 
@@ -44,12 +44,13 @@ dginh/dt = -ginh/tau_inh : siemens
 ztemp = []              # Matrix where CV values will be stored in
 yvalues = []            # List where gext values will be stored in
 xvalues = []            # List where ginh values will be stored in
+kmeans_input = []
 
 gext_lower = 2         # Lower bound of gext for loop
-gext_upper = 3        # Upper bound of gext for loop
+gext_upper = 4        # Upper bound of gext for loop
 
 ginh_lower = 2             # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
-ginh_upper = 5
+ginh_upper = 4
 
 stepsize = 1
 
@@ -133,6 +134,9 @@ for a in arange(gext_lower,gext_upper,stepsize):
 
         run(Duration, report='stdout')
         
+        figname1 = 'fig' + str(int(10*a)) + str(int(10*b))
+        fig1 = figure()
+        
         randomsample = random.sample(xrange(N_e), 25)
         plotlist_t = []
         plotlist_i = []
@@ -140,7 +144,6 @@ for a in arange(gext_lower,gext_upper,stepsize):
             if SM.i[n] in randomsample:
                 plotlist_t.append(SM.t[n]/ms)
                 plotlist_i.append(randomsample.index(SM.i[n]))
-        
         subplot(311)
         title('gext = %s ginh = %s; 25 exc neurons; 25 inh neurons; global activity exc; inh'%(gext, ginh))
         ylabel('neuron index')
@@ -164,7 +167,48 @@ for a in arange(gext_lower,gext_upper,stepsize):
         # plot(PRM_e.t/ms, PRM_e.rate*Ne/10000)
         plot(PRM.t/ms, PRM.rate)
         
-        figure()
-        hist(PRM.rate/sum(PRM.rate))
+        fig1.savefig(figname1 + '.png', bbox_inches='tight')
+        
+        scaled_PRMrate = PRM.rate/sum(PRM.rate)
+        
+        figname2 = 'ScaledHist' + str(int(10*a)) + str(int(10*b))
+        fig2 = figure()
+        hist(scaled_PRMrate, 50)
+        fig2.savefig(figname2 + '.png', bbox_inches='tight')
+        
+        # figure()
+        # hist(PRM.rate, 50)
+        
+        stripped_PRMrate = PRM.rate[PRM.rate != 0]
+        stripped_scaled_PRMrate = stripped_PRMrate/sum(stripped_PRMrate)
+
+        figname4 = 'StrippedScaledHist' + str(int(10*a)) + str(int(10*b))
+        fig4 = figure()
+        hist(stripped_scaled_PRMrate, 50)
+        fig4.savefig(figname4 + '.png', bbox_inches='tight')
+        
+        frequency_measure2 = mean(stripped_scaled_PRMrate)
+        print frequency_measure2
+        
+        ztemp[int((a-float(gext_lower))/stepsize)].append(frequency_measure2)
+        kmeans_input.append(frequency_measure2)
+        
+zvalues = ma.array(ztemp, mask=np.isnan(ztemp))
+# print zvalues
+
+colorplot = figure()
+title('Measure of synchrony of different gext and ginh values')
+xlabel('ginh (nS)')
+ylabel('gext (nS)')
+colormap = mpl.cm.RdBu
+colormap.set_bad('k', 1.)
+pcolormesh(array(xvalues), array(yvalues), zvalues, cmap = colormap)
+colorbar()
+
+colorplot.savefig('colorplot.png', bbox_inches='tight')
+
+sio.savemat('Matlab_colorplotData.mat', {'zvalues':ztemp, 'xvalues':xvalues, 'yvalues':yvalues})
+sio.savemat('Matlab_kmeans.mat', {'kmeansvalues':kmeans_input})
+
         
 print 'Finished'
