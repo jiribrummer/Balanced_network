@@ -19,8 +19,8 @@ gexc = 1 * nS       # Conductance of excitatory neurons
 # gext = 8 * nS
 Eexc = 0 * mV       # Reversal potantial excitatory neurons
 Einh = -80 * mV     # Reversal potantial inhbitory neurons
-N_e = 1600      # Number of excitatory input neurons (in paper 3600 used)
-N_i = 400     # Number of inhibitory input neurons (in paper 900 used)
+N_e = 800      # Number of excitatory input neurons (in paper 3600 used)
+N_i = 200     # Number of inhibitory input neurons (in paper 900 used)
 C_m = Tau_m * gleak #
 
 Tau_rp = 5 * ms       # Refractory period
@@ -161,13 +161,13 @@ ztemp = []              # Matrix where CV values will be stored in
 yvalues = []            # List where gext values will be stored in
 xvalues = []            # List where ginh values will be stored in
 
-gext_lower = 1.5          # Lower bound of gext for loop
-gext_upper = 2.5        # Upper bound of gext for loop
+gext_lower = 2          # Lower bound of gext for loop
+gext_upper = 3        # Upper bound of gext for loop
 
-ginh_lower = 1.5             # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
-ginh_upper = 2.5
+ginh_lower = 4            # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
+ginh_upper = 5
 
-stepsize = .5
+stepsize = 1
 
 for i in arange(gext_lower, gext_upper+stepsize, stepsize):
     yvalues.append(i)   # Add gext value to y-axis list
@@ -358,6 +358,8 @@ for a in arange(gext_lower,gext_upper,stepsize):
         print int((a-float(gext_lower))/stepsize)
         ztemp[int((a-float(gext_lower))/stepsize)].append(av_cv)
         print ztemp
+        
+        ISIS = get_isi_from_trains(get_trains_from_spikes(SM.i, SM.t/ms, imax=None), flat=True)
         
 zvalues = ma.array(ztemp, mask=np.isnan(ztemp))
 # print zvalues
