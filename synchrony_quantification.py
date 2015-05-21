@@ -1,4 +1,4 @@
-# Simulation of balanced network with unsupervised learning.
+# Simulation of balanced network. Synchrony analysis.
 
 from brian2 import *
 import random
@@ -46,13 +46,13 @@ yvalues = []            # List where gext values will be stored in
 xvalues = []            # List where ginh values will be stored in
 kmeans_input = []
 
-gext_lower = 2         # Lower bound of gext for loop
-gext_upper = 4        # Upper bound of gext for loop
+gext_lower = 7         # Lower bound of gext for loop
+gext_upper = 8        # Upper bound of gext for loop
 
-ginh_lower = 2             # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
-ginh_upper = 4
+ginh_lower = 8             # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
+ginh_upper = 9
 
-stepsize = 1
+stepsize = .4
 
 for i in arange(gext_lower, gext_upper+stepsize, stepsize):
     yvalues.append(i)   # Add gext value to y-axis list
@@ -182,16 +182,17 @@ for a in arange(gext_lower,gext_upper,stepsize):
         stripped_PRMrate = PRM.rate[PRM.rate != 0]
         stripped_scaled_PRMrate = stripped_PRMrate/sum(stripped_PRMrate)
 
+        frequency_measure = mean(stripped_scaled_PRMrate)
+        print frequency_measure
+
         figname4 = 'StrippedScaledHist' + str(int(10*a)) + str(int(10*b))
         fig4 = figure()
+        title('gext = %s ginh = %s; distribution of relative frequency. Frequency measure: %s'%(gext, ginh, frequency_measure))
         hist(stripped_scaled_PRMrate, 50)
         fig4.savefig(figname4 + '.png', bbox_inches='tight')
         
-        frequency_measure2 = mean(stripped_scaled_PRMrate)
-        print frequency_measure2
-        
-        ztemp[int((a-float(gext_lower))/stepsize)].append(frequency_measure2)
-        kmeans_input.append(frequency_measure2)
+        ztemp[int((a-float(gext_lower))/stepsize)].append(frequency_measure)
+        kmeans_input.append(frequency_measure)
         
 zvalues = ma.array(ztemp, mask=np.isnan(ztemp))
 # print zvalues
