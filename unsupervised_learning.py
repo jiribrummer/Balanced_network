@@ -19,8 +19,8 @@ gexc = 1 * nS       # Conductance of excitatory neurons
 # gext = 8 * nS
 Eexc = 0 * mV       # Reversal potantial excitatory neurons
 Einh = -80 * mV     # Reversal potantial inhbitory neurons
-N_e = 800      # Number of excitatory input neurons (in paper 3600 used)
-N_i = 200     # Number of inhibitory input neurons (in paper 900 used)
+N_e = 100      # Number of excitatory input neurons (in paper 3600 used)
+N_i = 25     # Number of inhibitory input neurons (in paper 900 used)
 C_m = Tau_m * gleak #
 
 Tau_rp = 5 * ms       # Refractory period
@@ -28,8 +28,8 @@ Theta = -50 * mV      # Threshold
 Vr = -55 * mV         # Reset value after threshold is reached
 tau_exc = 5 * ms
 tau_inh = 10 * ms
-epsilon = .1914893617 # in paper 0.05 used, but scaled for N = 1000 (Golomb 2000)
-# epsilon = .05
+# epsilon = .1914893617 # in paper 0.05 used, but scaled for N = 1000 (Golomb 2000)
+epsilon = .05
 
 Duration = 600 * ms
 
@@ -121,10 +121,10 @@ def calculate_cv():
     # print 'cv per neuron: ', cv_per_neuron
     average_CV = mean(cv_per_neuron)
     # print 'average_CV', average_CV
-    print cv_per_neuron
-    print average_CV
+    # print cv_per_neuron
+    # print average_CV
     if cv_per_neuron != []:
-        figname = 'hist' + str(int(10*a)) + str(int(10*b))
+        figname = 'CV_hist' + str(int(10*a)) + str(int(10*b))
         fig = figure()
         title('gext = %s ginh = %s; Coefficient of variance'%(gext, ginh))
         xlabel('CV value')
@@ -157,17 +157,23 @@ def calculate_cv():
 
 ##############################################################################   
 
-ztemp = []              # Matrix where CV values will be stored in
+ztemp_cv = []              # Matrix where CV values will be stored in
+ztemp_syn = []
 yvalues = []            # List where gext values will be stored in
 xvalues = []            # List where ginh values will be stored in
 
-gext_lower = 2          # Lower bound of gext for loop
-gext_upper = 3        # Upper bound of gext for loop
+kmeansdata_cv = []
+kmeansdata_syn = []
 
-ginh_lower = 4            # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
-ginh_upper = 5
 
-stepsize = 1
+
+gext_lower = 1.5          # Lower bound of gext for loop
+gext_upper = 10.5        # Upper bound of gext for loop
+
+ginh_lower = 1            # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
+ginh_upper = 10
+
+stepsize = .5
 
 for i in arange(gext_lower, gext_upper+stepsize, stepsize):
     yvalues.append(i)   # Add gext value to y-axis list
@@ -177,7 +183,8 @@ for j in arange(ginh_lower, ginh_upper+stepsize, stepsize):
 
 
 for a in arange(gext_lower,gext_upper,stepsize):
-    ztemp.append([])    # Add row to matrix
+    ztemp_cv.append([])    # Add row to matrix
+    ztemp_syn.append([])    # Add row to matrix
     
     gext = a * nS
     
@@ -244,19 +251,19 @@ for a in arange(gext_lower,gext_upper,stepsize):
             S_ie.w[j] = random.gauss(gexc, gexc/3)
         
         
-        # Function to determine rates for excitatory input neurons
-        def determineRates(N):
-            Nu_i = []
-            mu = random.randint(0,N-1)
-            for i in range(N):
-                
-                # Equation of Yger 2013, materials & methods, Circular Gaussian simulations.
-                # NB. Litteral implementation results in linear distributions. In order to
-                # make them circular min(abs(i-mu), (N-abs(i-mu))) is used in stead of
-                # abs(i-mu) which is stated in the paper. 
-                nu = (50*(exp((float(min(abs(i-mu), (N-abs(i-mu))))**2)/20000)) + 5)
-                Nu_i.append(nu)
-            return Nu_i * Hz
+        # # Function to determine rates for excitatory input neurons
+        # def determineRates(N):
+        #     Nu_i = []
+        #     mu = random.randint(0,N-1)
+        #     for i in range(N):
+        #         
+        #         # Equation of Yger 2013, materials & methods, Circular Gaussian simulations.
+        #         # NB. Litteral implementation results in linear distributions. In order to
+        #         # make them circular min(abs(i-mu), (N-abs(i-mu))) is used in stead of
+        #         # abs(i-mu) which is stated in the paper. 
+        #         nu = (50*(exp((float(min(abs(i-mu), (N-abs(i-mu))))**2)/20000)) + 5)
+        #         Nu_i.append(nu)
+        #     return Nu_i * Hz
         
         
         
@@ -345,40 +352,63 @@ for a in arange(gext_lower,gext_upper,stepsize):
         
         fig2.savefig(figname2 + '.png', bbox_inches='tight')
         # exec("%s = fig"%(figname))
+
+        stripped_PRMrate = PRM.rate[PRM.rate != 0]
+        stripped_scaled_PRMrate = stripped_PRMrate/sum(stripped_PRMrate)
+        frequency_measure = mean(stripped_scaled_PRMrate)
         
+        figname3 = 'StrippedScaledHist' + str(int(10*a)) + str(int(10*b))
+        fig3 = figure()
+        title('gext = %s ginh = %s; distribution of relative frequency. Frequency measure: %s'%(gext, ginh, frequency_measure))
+        hist(stripped_scaled_PRMrate, 50)
+        fig3.savefig(figname3 + '.png', bbox_inches='tight')
         
         av_cv = calculate_cv()
         # print av_cv
-        print 'ztemp', ztemp
-        print a, type(a)
-        print gext_lower, type(gext_lower)
-        print stepsize, type(stepsize)
-        print (a-float(gext_lower))/stepsize
-        print a-float(gext_lower)
-        print int((a-float(gext_lower))/stepsize)
-        ztemp[int((a-float(gext_lower))/stepsize)].append(av_cv)
-        print ztemp
+        # print a, type(a)
+        # print gext_lower, type(gext_lower)
+        # print stepsize, type(stepsize)
+        # print (a-float(gext_lower))/stepsize
+        # print a-float(gext_lower)
+        # print int((a-float(gext_lower))/stepsize)
+        ztemp_cv[int((a-float(gext_lower))/stepsize)].append(av_cv)
+        ztemp_syn[int((a-float(gext_lower))/stepsize)].append(frequency_measure)
         
         ISIS = get_isi_from_trains(get_trains_from_spikes(SM.i, SM.t/ms, imax=None), flat=True)
         
-zvalues = ma.array(ztemp, mask=np.isnan(ztemp))
+        kmeansdata_syn.append(frequency_measure)
+        kmeansdata_cv.append(av_cv)
+        
+zvalues_cv = ma.array(ztemp_cv, mask=np.isnan(ztemp_cv))
+zvalues_syn = ma.array(ztemp_syn, mask=np.isnan(ztemp_syn))
 # print zvalues
 
-colorplot = figure()
+colorplot_cv = figure()
 title('CV values of different gext and ginh values')
 xlabel('ginh (ns)')
 ylabel('gext (nS)')
 colormap = mpl.cm.RdBu
 colormap.set_bad('k', 1.)
-pcolormesh(array(xvalues), array(yvalues), zvalues, cmap = colormap)
+pcolormesh(array(xvalues), array(yvalues), zvalues_cv, cmap = colormap)
 colorbar()
 
-colorplot.savefig('colorplot.png', bbox_inches='tight')
+colorplot_cv.savefig('colorplot_cv.png', bbox_inches='tight')
 
-sio.savemat('Matlab_file.mat', {'zvalues':ztemp, 'xvalues':xvalues, 'yvalues':yvalues})
 
-# show()
+colorplot_syn = figure()
+title('Measure of synchrony of different gext and ginh values')
+xlabel('ginh (nS)')
+ylabel('gext (nS)')
+colormap = mpl.cm.RdBu
+colormap.set_bad('k', 1.)
+pcolormesh(array(xvalues), array(yvalues), zvalues_syn, cmap = colormap)
+colorbar()
 
+colorplot_syn.savefig('colorplot_syn.png', bbox_inches='tight')
+
+
+sio.savemat('Matlab_file.mat', {'zvalues_cv':ztemp_cv, 'zvalues_syn':ztemp_syn, 'xvalues':xvalues, 'yvalues':yvalues})
+sio.savemat('Matlab_kmeans.mat', {'kmeansdata_cv':kmeansdata_cv, 'kmeansdata_syn':kmeansdata_syn})
 
 
 print 'Finished'
