@@ -1,4 +1,4 @@
-function p = pcolor_fleur(x,y,z)
+function p = pcolor_fleur(x,y,z);
 % Same as pcolor, but than x and y are the middle of the columns/rows, not
 % the edges
 
