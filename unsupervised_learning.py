@@ -9,6 +9,7 @@ import scipy.io as sio
 # Start simulation
 print "start unsupervised learning"
 
+
 # Initialize  parameters
 dt = 0.1 * ms		# Timesteps of neurongroup
 Tau_m = 20 * ms     # Membrane time constant
@@ -31,7 +32,6 @@ tau_inh = 10 * ms
 epsilon = .1914893617 # in paper 0.05 used, but scaled for N = 1000 (Golomb 2000)
 # epsilon = .05
 
-Duration = 600 * ms
 
 
 # Integrate and Fire neuron equation
@@ -131,6 +131,7 @@ def calculate_cv():
         ylabel('frequency')
         hist(cv_per_neuron, 50, normed = True)
         fig.savefig(figname + '.png', bbox_inches='tight')
+        close(fig)
 ###############################################################
 ## Histograms of ISI
 ###############################################################
@@ -142,6 +143,7 @@ def calculate_cv():
         hist(array(list_for_all_isi), 50, normed = True)
 
         fig.savefig(figname + '.png', bbox_inches='tight')
+        close(fig)
         
         # figname = 'hist2_ISI_' + str(int(10*a)) + str(int(10*b))
         # fig = figure()
@@ -165,13 +167,13 @@ xvalues = []            # List where ginh values will be stored in
 kmeansdata_cv = []
 kmeansdata_syn = []
 
-gext_lower = 1.5          # Lower bound of gext for loop
-gext_upper = 10.5        # Upper bound of gext for loop
+gext_lower = 2          # Lower bound of gext for loop
+gext_upper = 11        # Upper bound of gext for loop
 
 ginh_lower = 1            # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
 ginh_upper = 10
 
-stepsize = .5
+stepsize = 1
 
 for i in arange(gext_lower, gext_upper+stepsize, stepsize):
     yvalues.append(i)   # Add gext value to y-axis list
@@ -290,9 +292,9 @@ for a in arange(gext_lower,gext_upper,stepsize):
         # # # # for i in range(len(S_i.w)):
         # # # #     S_i.w[i] = random.gauss(ginh, ginh/3)
         
-        
-        
-        
+        SM = None
+        PRM = None
+        run(500*ms, report='stdout')
         # Monitors. Only s_mon is used to visualize input neurons
         # and produces replica of Yger Fig 2A.
         # s_mon_e = SpikeMonitor(input)
@@ -303,8 +305,8 @@ for a in arange(gext_lower,gext_upper,stepsize):
         # PRM_e = PopulationRateMonitor(group_e)
         # PRM_i = PopulationRateMonitor(group_i)
         PRM = PopulationRateMonitor(neurons)
-
-        run(Duration, report='stdout')
+        
+        run(100*ms, report='stdout')
         
         figname2 = 'fig' + str(int(10*a)) + str(int(10*b))
         fig2 = figure()
@@ -349,6 +351,7 @@ for a in arange(gext_lower,gext_upper,stepsize):
         # plot(PRM_i.t/ms, PRM_i.rate)
         
         fig2.savefig(figname2 + '.png', bbox_inches='tight')
+        close(fig2)
         # exec("%s = fig"%(figname))
 
         stripped_PRMrate = PRM.rate[PRM.rate != 0]
@@ -360,6 +363,7 @@ for a in arange(gext_lower,gext_upper,stepsize):
         title('gext = %s ginh = %s; distribution of relative frequency. Frequency measure: %s'%(gext, ginh, frequency_measure))
         hist(stripped_scaled_PRMrate, 50)
         fig3.savefig(figname3 + '.png', bbox_inches='tight')
+        close(fig3)
         
         av_cv = calculate_cv()
         # print av_cv
@@ -383,7 +387,7 @@ zvalues_syn = ma.array(ztemp_syn, mask=np.isnan(ztemp_syn))
 
 colorplot_cv = figure()
 title('CV values of different gext and ginh values')
-xlabel('ginh (ns)')
+xlabel('ginh (nS)')
 ylabel('gext (nS)')
 colormap = mpl.cm.RdBu
 colormap.set_bad('k', 1.)
