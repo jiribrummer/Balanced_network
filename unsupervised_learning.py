@@ -5,9 +5,12 @@ import random
 import numpy.ma as ma
 import matplotlib as mpl
 import scipy.io as sio
+import time
 
 # Start simulation
 print "start unsupervised learning"
+start = time.time()
+print start
 
 
 # Initialize  parameters
@@ -306,7 +309,7 @@ for a in arange(gext_lower,gext_upper,stepsize):
         # PRM_i = PopulationRateMonitor(group_i)
         PRM = PopulationRateMonitor(neurons)
         
-        run(100*ms, report='stdout')
+        run(700*ms, report='stdout')
         
         figname2 = 'fig' + str(int(10*a)) + str(int(10*b))
         fig2 = figure()
@@ -412,5 +415,10 @@ colorplot_syn.savefig('colorplot_syn.png', bbox_inches='tight')
 sio.savemat('Matlab_file.mat', {'zvalues_cv':ztemp_cv, 'zvalues_syn':ztemp_syn, 'xvalues':xvalues, 'yvalues':yvalues})
 sio.savemat('Matlab_kmeans.mat', {'kmeansdata_cv':kmeansdata_cv, 'kmeansdata_syn':kmeansdata_syn})
 
+end = time.time()
+total_time = end-start
+total_time_hours = total_time/3600
+print total_time,' seconds'
+print total_time_hours, ' hours'
 
 print 'Finished'
