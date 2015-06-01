@@ -19,8 +19,8 @@ gexc = 1 * nS       # Conductance of excitatory neurons
 # gext = 8 * nS
 Eexc = 0 * mV       # Reversal potantial excitatory neurons
 Einh = -80 * mV     # Reversal potantial inhbitory neurons
-N_e = 800     # Number of excitatory input neurons (in paper 3600 used)
-N_i = 200     # Number of inhibitory input neurons (in paper 900 used)
+N_e = 8     # Number of excitatory input neurons (in paper 3600 used)
+N_i = 2     # Number of inhibitory input neurons (in paper 900 used)
 C_m = Tau_m * gleak #
 
 Tau_rp = 5 * ms       # Refractory period
@@ -31,7 +31,7 @@ tau_inh = 10 * ms
 epsilon = .1914893617 # in paper 0.05 used, but scaled for N = 1000 (Golomb 2000)
 # epsilon = .05
 
-Duration = 600 * ms
+Duration = 1 * ms
 
 
 # Integrate and Fire neuron equation
@@ -46,13 +46,13 @@ yvalues = []            # List where gext values will be stored in
 xvalues = []            # List where ginh values will be stored in
 kmeans_input = []
 
-gext_lower = 1.5         # Lower bound of gext for loop
-gext_upper = 10.5        # Upper bound of gext for loop
+gext_lower = 8         # Lower bound of gext for loop
+gext_upper = 9        # Upper bound of gext for loop
 
-ginh_lower = 1             # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
-ginh_upper = 10
+ginh_lower = 2            # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
+ginh_upper = 3
 
-stepsize = .5
+stepsize = 1
 
 for i in arange(gext_lower, gext_upper+stepsize, stepsize):
     yvalues.append(i)   # Add gext value to y-axis list
@@ -80,7 +80,8 @@ for a in arange(gext_lower,gext_upper,stepsize):
         
         
         # # Input stimuli
-        P = PoissonGroup(N_e+N_i, 300 * Hz)
+        P = PoissonGroup(N_e+N_i, 12000 * Hz)
+        
         
         # # Connect input to neurons
         S_input = Synapses(P, neurons,
@@ -137,7 +138,7 @@ for a in arange(gext_lower,gext_upper,stepsize):
         figname1 = 'fig' + str(int(10*a)) + str(int(10*b))
         fig1 = figure()
         
-        randomsample = random.sample(xrange(N_e), 25)
+        randomsample = random.sample(xrange(N_e), 8)
         plotlist_t = []
         plotlist_i = []
         for n in range(len(SM.i)):
@@ -149,7 +150,7 @@ for a in arange(gext_lower,gext_upper,stepsize):
         ylabel('neuron index')
         plot(plotlist_t, plotlist_i, '.k')
         
-        randomsample = random.sample(xrange(N_e, N_e + N_i), 25)
+        randomsample = random.sample(xrange(N_e, N_e + N_i), 2)
         plotlist_t = []
         plotlist_i = []
         for n in range(len(SM.i)):
@@ -167,14 +168,14 @@ for a in arange(gext_lower,gext_upper,stepsize):
         # plot(PRM_e.t/ms, PRM_e.rate*Ne/10000)
         plot(PRM.t/ms, PRM.rate)
         
-        fig1.savefig(figname1 + '.png', bbox_inches='tight')
+        # fig1.savefig(figname1 + '.png', bbox_inches='tight')
         
         scaled_PRMrate = PRM.rate/sum(PRM.rate)
         
-        figname2 = 'ScaledHist' + str(int(10*a)) + str(int(10*b))
-        fig2 = figure()
-        hist(scaled_PRMrate, 50)
-        fig2.savefig(figname2 + '.png', bbox_inches='tight')
+        # figname2 = 'ScaledHist' + str(int(10*a)) + str(int(10*b))
+        # fig2 = figure()
+        # hist(scaled_PRMrate, 5)
+        # fig2.savefig(figname2 + '.png', bbox_inches='tight')
         
         # figure()
         # hist(PRM.rate, 50)
@@ -185,11 +186,11 @@ for a in arange(gext_lower,gext_upper,stepsize):
         frequency_measure = mean(stripped_scaled_PRMrate)
         print frequency_measure
 
-        figname4 = 'StrippedScaledHist' + str(int(10*a)) + str(int(10*b))
-        fig4 = figure()
-        title('gext = %s ginh = %s; distribution of relative frequency. Frequency measure: %s'%(gext, ginh, frequency_measure))
-        hist(stripped_scaled_PRMrate, 50)
-        fig4.savefig(figname4 + '.png', bbox_inches='tight')
+        # figname4 = 'StrippedScaledHist' + str(int(10*a)) + str(int(10*b))
+        # fig4 = figure()
+        # title('gext = %s ginh = %s; distribution of relative frequency. Frequency measure: %s'%(gext, ginh, frequency_measure))
+        # hist(stripped_scaled_PRMrate, 5)
+        # # fig4.savefig(figname4 + '.png', bbox_inches='tight')
         
         ztemp[int((a-float(gext_lower))/stepsize)].append(frequency_measure)
         kmeans_input.append(frequency_measure)
@@ -197,19 +198,20 @@ for a in arange(gext_lower,gext_upper,stepsize):
 zvalues = ma.array(ztemp, mask=np.isnan(ztemp))
 # print zvalues
 
-colorplot = figure()
-title('Measure of synchrony of different gext and ginh values')
-xlabel('ginh (nS)')
-ylabel('gext (nS)')
-colormap = mpl.cm.RdBu
-colormap.set_bad('k', 1.)
-pcolormesh(array(xvalues), array(yvalues), zvalues, cmap = colormap)
-colorbar()
+# colorplot = figure()
+# title('Measure of synchrony of different gext and ginh values')
+# xlabel('ginh (nS)')
+# ylabel('gext (nS)')
+# colormap = mpl.cm.RdBu
+# colormap.set_bad('k', 1.)
+# pcolormesh(array(xvalues), array(yvalues), zvalues, cmap = colormap)
+# colorbar()
 
-colorplot.savefig('colorplot.png', bbox_inches='tight')
+# colorplot.savefig('colorplot.png', bbox_inches='tight')
 
-sio.savemat('Matlab_colorplotData.mat', {'zvalues':ztemp, 'xvalues':xvalues, 'yvalues':yvalues})
-sio.savemat('Matlab_kmeans.mat', {'kmeansvalues':kmeans_input})
+# sio.savemat('Matlab_colorplotData.mat', {'zvalues':ztemp, 'xvalues':xvalues, 'yvalues':yvalues})
+# sio.savemat('Matlab_kmeans.mat', {'kmeansvalues':kmeans_input})
 
+show()
         
 print 'Finished'
