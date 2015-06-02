@@ -35,7 +35,7 @@ tau_inh = 10 * ms
 epsilon = .1914893617 # in paper 0.05 used, but scaled for N = 1000 (Golomb 2000)
 # epsilon = .05
 
-
+record_duration = 700*ms
 
 # Integrate and Fire neuron equation
 eqs = """
@@ -309,7 +309,26 @@ for a in arange(gext_lower,gext_upper,stepsize):
         # PRM_i = PopulationRateMonitor(group_i)
         PRM = PopulationRateMonitor(neurons)
         
-        run(700*ms, report='stdout')
+        run(record_duration, report='stdout')
+        
+        absolute_rate_array = (((PRM.rate/khertz)*(N_e+N_i))*(dt/ms))
+        biggest_peaks = absolute_rate_array.argsort()[-3:][::-1]
+        
+        new_frequency_measure = mean(absolute_rate_array[biggest_peaks])
+        
+        number_of_spikes = int(sum((PRM.rate*(N_e+N_i)/10000))/hertz)
+        
+        dummy_matrix = zeros((N_e+N_i, len(PRM.rate)))
+        nspike_row = numpy.random.randint(N_e+N_i, size=number_of_spikes)
+        nspike_column = numpy.random.randint(len(PRM.rate), size=number_of_spikes)
+        for i in range(len(nspike_column)):
+            dummy_matrix[nspike_row[i]][nspike_column[i]] = 1
+            
+        dummy_rates = numpy.sum(dummy_matrix, axis=0)
+        dummy_biggest_peaks = dummy_rates.argsort()[-3:][::-1]
+        dummy_freq_measure = mean(dummy_rates[dummy_biggest_peaks])
+        
+        synchrony_measure = new_frequency_measure/dummy_freq_measure
         
         figname2 = 'fig' + str(int(10*a)) + str(int(10*b))
         fig2 = figure()
@@ -323,8 +342,8 @@ for a in arange(gext_lower,gext_upper,stepsize):
                 plotlist_t.append(SM.t[n]/ms)
                 plotlist_i.append(randomsample.index(SM.i[n]))
         
-        subplot(311)
-        title('gext = %s ginh = %s; 25 exc neurons; 25 inh neurons; global activity exc; inh'%(gext, ginh))
+        subplot(411)
+        title('gext = %s ginh = %s; 25 exc neurons; 25 inh neurons; global activity; dummy activity; %s'%(gext, ginh, synchrony_measure))
         ylabel('neuron index')
         plot(plotlist_t, plotlist_i, '.k')
         
@@ -336,15 +355,19 @@ for a in arange(gext_lower,gext_upper,stepsize):
                 plotlist_t.append(SM.t[n]/ms)
                 plotlist_i.append(randomsample.index(SM.i[n]))
         
-        subplot(312)
+        subplot(412)
         ylabel('neuron index')
         plot(plotlist_t, plotlist_i, '.k')
         
-        subplot(313)
+        subplot(413)
         ylabel('Frequency')
         xlabel('time (ms)')
-        # plot(PRM_e.t/ms, PRM_e.rate*Ne/10000)
-        plot(PRM.t/ms, PRM.rate)
+        plot(PRM.t/ms, absolute_rate_array)
+        
+        subplot(414)
+        ylabel('Frequency')
+        xlabel('time (ms)')
+        plot(PRM.t/ms, dummy_rates)
 
         # 
         # subplot(414)
@@ -357,16 +380,16 @@ for a in arange(gext_lower,gext_upper,stepsize):
         close(fig2)
         # exec("%s = fig"%(figname))
 
-        stripped_PRMrate = PRM.rate[PRM.rate != 0]
-        stripped_scaled_PRMrate = stripped_PRMrate/sum(stripped_PRMrate)
-        frequency_measure = mean(stripped_scaled_PRMrate)
+        # stripped_PRMrate = PRM.rate[PRM.rate != 0]
+        # stripped_scaled_PRMrate = stripped_PRMrate/sum(stripped_PRMrate)
+        # frequency_measure_old = mean(stripped_scaled_PRMrate)
         
-        figname3 = 'StrippedScaledHist' + str(int(10*a)) + str(int(10*b))
-        fig3 = figure()
-        title('gext = %s ginh = %s; distribution of relative frequency. Frequency measure: %s'%(gext, ginh, frequency_measure))
-        hist(stripped_scaled_PRMrate, 50)
-        fig3.savefig(figname3 + '.png', bbox_inches='tight')
-        close(fig3)
+        # figname3 = 'StrippedScaledHist' + str(int(10*a)) + str(int(10*b))
+        # fig3 = figure()
+        # title('gext = %s ginh = %s; distribution of relative frequency. Frequency measure: %s'%(gext, ginh, frequency_measure))
+        # hist(stripped_scaled_PRMrate, 50)
+        # fig3.savefig(figname3 + '.png', bbox_inches='tight')
+        # close(fig3)
         
         av_cv = calculate_cv()
         # print av_cv
@@ -377,11 +400,11 @@ for a in arange(gext_lower,gext_upper,stepsize):
         # print a-float(gext_lower)
         # print int((a-float(gext_lower))/stepsize)
         ztemp_cv[int((a-float(gext_lower))/stepsize)].append(av_cv)
-        ztemp_syn[int((a-float(gext_lower))/stepsize)].append(frequency_measure)
+        ztemp_syn[int((a-float(gext_lower))/stepsize)].append(synchrony_measure)
         
-        ISIS = get_isi_from_trains(get_trains_from_spikes(SM.i, SM.t/ms, imax=None), flat=True)
+        # ISIS = get_isi_from_trains(get_trains_from_spikes(SM.i, SM.t/ms, imax=None), flat=True)
         
-        kmeansdata_syn.append(frequency_measure)
+        kmeansdata_syn.append(synchrony_measure)
         kmeansdata_cv.append(av_cv)
         
 zvalues_cv = ma.array(ztemp_cv, mask=np.isnan(ztemp_cv))
