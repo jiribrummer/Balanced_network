@@ -170,13 +170,13 @@ xvalues = []            # List where ginh values will be stored in
 kmeansdata_cv = []
 kmeansdata_syn = []
 
-gext_lower = 2          # Lower bound of gext for loop
-gext_upper = 11        # Upper bound of gext for loop
+gext_lower = 1.5          # Lower bound of gext for loop
+gext_upper = 10.5        # Upper bound of gext for loop
 
 ginh_lower = 1            # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
 ginh_upper = 10
 
-stepsize = 1
+stepsize = .5
 
 for i in arange(gext_lower, gext_upper+stepsize, stepsize):
     yvalues.append(i)   # Add gext value to y-axis list

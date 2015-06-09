@@ -31,7 +31,7 @@ colorplot_matrix = zeros(cy, cx);
 matrix = cat(2, kmeansdata_cv', kmeansdata_syn');
 
 % Returns vector with cluster number as index
-indices = kmeans(matrix, 4, 'display', 'final', 'replicates', 20);
+indices = kmeans(matrix, 5, 'display', 'final', 'replicates', 20);
 
 % Loop to make matrix for colorplot
 index_value = 1;
@@ -63,7 +63,7 @@ matrix = cat(2, norm_kmeans_cv', norm_kmeans_syn');
 %matrix = norm_kmeans_syn';
 
 % Returns vector with cluster number as index
-indices = kmeans(matrix, 3, 'display', 'final', 'replicates', 20);
+indices = kmeans(matrix, 5, 'display', 'final', 'replicates', 20);
 
 % Loop to make matrix for colorplot
 index_value = 1;
@@ -74,7 +74,9 @@ index_value = 1;
     end
  end
 
+colormap gray;
 pcolor_fleur(xaxis,yaxis,colorplot_matrix);
+
 
 %% perform kmeans analyses with different cluster sizes
 % !!WITH NORMALIZATION!!
