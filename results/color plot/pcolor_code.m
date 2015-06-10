@@ -1,6 +1,10 @@
 %% Create CV colorplot 
 
-
+subplot(1,2,1)
+pcolor_fleur(xaxis,yaxis,zvalues_cv);
+xlabel('ginh (nS)')
+ylabel('gext (nS)')
+subplot(1,2,2)
 pcolor_fleur(xaxis,yaxis,zvalues_syn);
 xlabel('ginh (nS)')
 ylabel('gext (nS)')
