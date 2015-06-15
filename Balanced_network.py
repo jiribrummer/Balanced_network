@@ -2,6 +2,8 @@
 
 from brian2 import *
 import random
+import scipy.io as sio
+
 
 # Start simulation
 print "start balanced network"
@@ -30,8 +32,8 @@ print "start balanced network"
 # # # # # Duration = 100*ms
 
 # Initialize dummy network parameters
-Ne = 40         # Number of excitatory pyramidal cells
-Ni = 10          # Number of inhibitory cells
+Ne = 1600         # Number of excitatory pyramidal cells
+Ni = 400          # Number of inhibitory cells
 epsilon = 0.4098    # Rate of sparseness. This value is calculated with N = 2000
 # epsilon = 0.2577	# Rate of sparseness. This value is calculated with N = 4000	
 Ce = Ne*epsilon     # Number of connections receiving from excitatory neurons
@@ -55,13 +57,13 @@ dt = 0.1 * ms		# Timesteps of neurongroup
 # g = 6
 # Vext = 4
 
-# State C
-g = 5
-Vext = 2
+# # State C
+# g = 5
+# Vext = 2
 
-# # State D
-# g = 4.5
-# Vext = 0.9
+# State D
+g = 4.5
+Vext = 0.9
 
 muext = Vext*Theta
 sigmaext = J*sqrt(Vext*Theta/J)
@@ -80,21 +82,21 @@ neurons = NeuronGroup(Ne+Ni, eqs, dt=dt, threshold='v>Theta',
 group_e = neurons[:Ne]
 group_i = neurons[Ne:]
 
-# S_e = Synapses(group_e, group_e, pre='v_post += J')
-# S_e.connect('i!=j', p=epsilon)
-# S_e.delay = D
-# 
-# S_ei = Synapses(group_i, group_e, pre='v_post += -g*J')
-# S_ei.connect('i!=j', p=epsilon)
-# S_ei.delay = D
-# 
-# S_i = Synapses(group_i, group_i, pre='v_post += -g*J')
-# S_i.connect('i!=j', p=epsilon)
-# S_i.delay = D
-# 
-# S_ie = Synapses(group_e, group_i, pre='v_post += J')
-# S_ie.connect('i!=j', p=epsilon)
-# S_ie.delay = D
+S_e = Synapses(group_e, group_e, pre='v_post += J')
+S_e.connect('i!=j', p=epsilon)
+S_e.delay = D
+
+S_ei = Synapses(group_i, group_e, pre='v_post += -g*J')
+S_ei.connect('i!=j', p=epsilon)
+S_ei.delay = D
+
+S_i = Synapses(group_i, group_i, pre='v_post += -g*J')
+S_i.connect('i!=j', p=epsilon)
+S_i.delay = D
+
+S_ie = Synapses(group_e, group_i, pre='v_post += J')
+S_ie.connect('i!=j', p=epsilon)
+S_ie.delay = D
 
 def visualise_connectivity(S_e):
 	Ns = len(S_e.source)
@@ -139,43 +141,45 @@ def visualise_total_connectivity(S_e, S_i, S_ei, S_ie):
 # if Ne+Ni < 500:
 # 	visualise_total_connectivity(S_e, S_i, S_ei, S_ie)
 
-M_e = StateMonitor(group_e, 'v', record=True)
-M_i= StateMonitor(group_i, 'v', record=True)
+# M_e = StateMonitor(group_e, 'v', record=True)
+# M_i= StateMonitor(group_i, 'v', record=True)
+
+run(1000 *ms, report='stdout')
 
 SM = SpikeMonitor(neurons)
 
 PRM_e = PopulationRateMonitor(group_e)
 PRM_i = PopulationRateMonitor(group_i)
 
-run(Duration, report='stdout')
+run(200 * ms, report='stdout')
 
 
 # # Figures
 
 # # V-t plots of 4 random excitatory and inhobitory single neurons
-figure(1)
-
-excitatoryList = random.sample(xrange(0,Ne), 2)
-inhibitoryList = random.sample(xrange(0,Ni), 2)
-
-subplot(221)
-title('Excitatory neuron: neuron %s'%(excitatoryList[0]))
-plot(M_e.t/ms, M_e.v[excitatoryList[0]])
-
-subplot(223)
-title('Excitatory neuron: neuron %s'%(excitatoryList[1]))
-plot(M_e.t/ms, M_e.v[excitatoryList[1]])
-
-subplot(222)
-title('Inhibitory neuron: neuron %s'%(inhibitoryList[0]))
-plot(M_i.t/ms, M_i.v[inhibitoryList[0]])
-
-subplot(224)
-title('Inhibitory neuron: neuron %s'%(inhibitoryList[1]))
-plot(M_i.t/ms, M_i.v[1])
-
-xlabel('Time (ms)')
-ylabel('v')
+# figure(1)
+# 
+# excitatoryList = random.sample(xrange(0,Ne), 2)
+# inhibitoryList = random.sample(xrange(0,Ni), 2)
+# 
+# subplot(221)
+# title('Excitatory neuron: neuron %s'%(excitatoryList[0]))
+# plot(M_e.t/ms, M_e.v[excitatoryList[0]])
+# 
+# subplot(223)
+# title('Excitatory neuron: neuron %s'%(excitatoryList[1]))
+# plot(M_e.t/ms, M_e.v[excitatoryList[1]])
+# 
+# subplot(222)
+# title('Inhibitory neuron: neuron %s'%(inhibitoryList[0]))
+# plot(M_i.t/ms, M_i.v[inhibitoryList[0]])
+# 
+# subplot(224)
+# title('Inhibitory neuron: neuron %s'%(inhibitoryList[1]))
+# plot(M_i.t/ms, M_i.v[1])
+# 
+# xlabel('Time (ms)')
+# ylabel('v')
 
 
 # # Plot of firing rate of all neurons, a random sample
@@ -233,10 +237,15 @@ subplot(212)
 title('Global activity of system over time')
 ylabel('Frequency')
 xlabel('time (ms)')
-# plot(PRM_e.t/ms, PRM_e.rate*Ne/10000)
-plot(PRM_e.t/ms, PRM_e.rate)
-
+plot(PRM_e.t/ms, PRM_e.rate+PRM_i.rate)
 
 show()
+
+PRM_time = PRM_e.t/ms
+PRM_rate = PRM_e.rate+PRM_i.rate
+
+sio.savemat('Matlab_file_d.mat', {'plotlist_t_D':plotlist_t, 'plotlist_i_D':plotlist_i, 'PRM_time_D': PRM_time, 'PRM_rate_D': PRM_rate})
+
+
 
 print 'Finished'

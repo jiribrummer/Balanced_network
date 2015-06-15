@@ -35,7 +35,7 @@ tau_inh = 10 * ms
 epsilon = .1914893617 # in paper 0.05 used, but scaled for N = 1000 (Golomb 2000)
 # epsilon = .05
 
-record_duration = 700*ms
+# record_duration = 700*ms
 
 # Integrate and Fire neuron equation
 eqs = """
@@ -170,13 +170,13 @@ xvalues = []            # List where ginh values will be stored in
 kmeansdata_cv = []
 kmeansdata_syn = []
 
-gext_lower = 1.5          # Lower bound of gext for loop
-gext_upper = 10.5        # Upper bound of gext for loop
+gext_lower = 3         # Lower bound of gext for loop
+gext_upper = 4       # Upper bound of gext for loop
 
-ginh_lower = 1            # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
-ginh_upper = 10
+ginh_lower = 3            # !!!!!!!!!!!!!!TO CHANGE: number of neurons and epsilon for large simulation !!!!!!!!!!!!!!!!!!!
+ginh_upper = 4
 
-stepsize = .5
+stepsize = 1
 
 for i in arange(gext_lower, gext_upper+stepsize, stepsize):
     yvalues.append(i)   # Add gext value to y-axis list
@@ -297,7 +297,7 @@ for a in arange(gext_lower,gext_upper,stepsize):
         
         SM = None
         PRM = None
-        run(500*ms, report='stdout')
+        run(1000*ms, report='stdout')
         # Monitors. Only s_mon is used to visualize input neurons
         # and produces replica of Yger Fig 2A.
         # s_mon_e = SpikeMonitor(input)
@@ -309,32 +309,32 @@ for a in arange(gext_lower,gext_upper,stepsize):
         # PRM_i = PopulationRateMonitor(group_i)
         PRM = PopulationRateMonitor(neurons)
         
-        run(record_duration, report='stdout')
+        run(200*ms, report='stdout')
         
-        absolute_rate_array = (((PRM.rate/khertz)*(N_e+N_i))*(dt/ms))
-        biggest_peaks = absolute_rate_array.argsort()[-3:][::-1]
-        
-        new_frequency_measure = mean(absolute_rate_array[biggest_peaks])
-        
-        number_of_spikes = int(sum((PRM.rate*(N_e+N_i)/10000))/hertz)
-        
-        dummy_matrix = zeros((N_e+N_i, len(PRM.rate)))
-        nspike_row = numpy.random.randint(N_e+N_i, size=number_of_spikes)
-        nspike_column = numpy.random.randint(len(PRM.rate), size=number_of_spikes)
-        for i in range(len(nspike_column)):
-            dummy_matrix[nspike_row[i]][nspike_column[i]] = 1
-            
-        dummy_rates = numpy.sum(dummy_matrix, axis=0)
-        dummy_biggest_peaks = dummy_rates.argsort()[-3:][::-1]
-        dummy_freq_measure = mean(dummy_rates[dummy_biggest_peaks])
-        
-        synchrony_measure = new_frequency_measure/dummy_freq_measure
+        # # # # # # absolute_rate_array = (((PRM.rate/khertz)*(N_e+N_i))*(dt/ms))
+        # # # # # # biggest_peaks = absolute_rate_array.argsort()[-3:][::-1]
+        # # # # # # 
+        # # # # # # new_frequency_measure = mean(absolute_rate_array[biggest_peaks])
+        # # # # # # 
+        # # # # # # number_of_spikes = int(sum((PRM.rate*(N_e+N_i)/10000))/hertz)
+        # # # # # # 
+        # # # # # # dummy_matrix = zeros((N_e+N_i, len(PRM.rate)))
+        # # # # # # nspike_row = numpy.random.randint(N_e+N_i, size=number_of_spikes)
+        # # # # # # nspike_column = numpy.random.randint(len(PRM.rate), size=number_of_spikes)
+        # # # # # # for i in range(len(nspike_column)):
+        # # # # # #     dummy_matrix[nspike_row[i]][nspike_column[i]] = 1
+        # # # # # #     
+        # # # # # # dummy_rates = numpy.sum(dummy_matrix, axis=0)
+        # # # # # # dummy_biggest_peaks = dummy_rates.argsort()[-3:][::-1]
+        # # # # # # dummy_freq_measure = mean(dummy_rates[dummy_biggest_peaks])
+        # # # # # # 
+        # # # # # # synchrony_measure = new_frequency_measure/dummy_freq_measure
         
         figname2 = 'fig' + str(int(10*a)) + str(int(10*b))
         fig2 = figure()
         # exec("%s = figure()"%(figname))
 
-        randomsample = random.sample(xrange(N_e), 25)
+        randomsample = random.sample(xrange(N_e+N_i), 50)
         plotlist_t = []
         plotlist_i = []
         for n in range(len(SM.i)):
@@ -342,32 +342,32 @@ for a in arange(gext_lower,gext_upper,stepsize):
                 plotlist_t.append(SM.t[n]/ms)
                 plotlist_i.append(randomsample.index(SM.i[n]))
         
-        subplot(411)
-        title('gext = %s ginh = %s; 25 exc neurons; 25 inh neurons; global activity; dummy activity; %s'%(gext, ginh, synchrony_measure))
+        subplot(211)
+        title('gext = %s ginh = %s; 25 exc neurons; 25 inh neurons; global activity; dummy activity; '%(gext, ginh))
         ylabel('neuron index')
         plot(plotlist_t, plotlist_i, '.k')
+        # # # # # # 
+        # # # # # # randomsample = random.sample(xrange(N_e, N_e + N_i), 25)
+        # # # # # # plotlist_t = []
+        # # # # # # plotlist_i = []
+        # # # # # # for n in range(len(SM.i)):
+        # # # # # #     if SM.i[n] in randomsample:
+        # # # # # #         plotlist_t.append(SM.t[n]/ms)
+        # # # # # #         plotlist_i.append(randomsample.index(SM.i[n]))
+        # # # # # # 
+        # # # # # # subplot(412)
+        # # # # # # ylabel('neuron index')
+        # # # # # # plot(plotlist_t, plotlist_i, '.k')
         
-        randomsample = random.sample(xrange(N_e, N_e + N_i), 25)
-        plotlist_t = []
-        plotlist_i = []
-        for n in range(len(SM.i)):
-            if SM.i[n] in randomsample:
-                plotlist_t.append(SM.t[n]/ms)
-                plotlist_i.append(randomsample.index(SM.i[n]))
-        
-        subplot(412)
-        ylabel('neuron index')
-        plot(plotlist_t, plotlist_i, '.k')
-        
-        subplot(413)
+        subplot(212)
         ylabel('Frequency')
         xlabel('time (ms)')
-        plot(PRM.t/ms, absolute_rate_array)
+        plot(PRM.t/ms, PRM.rate)
         
-        subplot(414)
-        ylabel('Frequency')
-        xlabel('time (ms)')
-        plot(PRM.t/ms, dummy_rates)
+        # # # # # # subplot(414)
+        # # # # # # ylabel('Frequency')
+        # # # # # # xlabel('time (ms)')
+        # # # # # # plot(PRM.t/ms, dummy_rates)
 
         # 
         # subplot(414)
@@ -376,8 +376,8 @@ for a in arange(gext_lower,gext_upper,stepsize):
         # # plot(PRM_e.t/ms, PRM_e.rate*Ne/10000)
         # plot(PRM_i.t/ms, PRM_i.rate)
         
-        fig2.savefig(figname2 + '.png', bbox_inches='tight')
-        close(fig2)
+        # # # # # # # fig2.savefig(figname2 + '.png', bbox_inches='tight')
+        # # # # # # # close(fig2)
         # exec("%s = fig"%(figname))
 
         # stripped_PRMrate = PRM.rate[PRM.rate != 0]
@@ -391,7 +391,7 @@ for a in arange(gext_lower,gext_upper,stepsize):
         # fig3.savefig(figname3 + '.png', bbox_inches='tight')
         # close(fig3)
         
-        av_cv = calculate_cv()
+        # # # # # # # av_cv = calculate_cv()
         # print av_cv
         # print a, type(a)
         # print gext_lower, type(gext_lower)
@@ -399,44 +399,51 @@ for a in arange(gext_lower,gext_upper,stepsize):
         # print (a-float(gext_lower))/stepsize
         # print a-float(gext_lower)
         # print int((a-float(gext_lower))/stepsize)
-        ztemp_cv[int((a-float(gext_lower))/stepsize)].append(av_cv)
-        ztemp_syn[int((a-float(gext_lower))/stepsize)].append(synchrony_measure)
+        # # # # # # # ztemp_cv[int((a-float(gext_lower))/stepsize)].append(av_cv)
+        # # # # # # # ztemp_syn[int((a-float(gext_lower))/stepsize)].append(synchrony_measure)
         
         # ISIS = get_isi_from_trains(get_trains_from_spikes(SM.i, SM.t/ms, imax=None), flat=True)
         
-        kmeansdata_syn.append(synchrony_measure)
-        kmeansdata_cv.append(av_cv)
+        # # # # # # # kmeansdata_syn.append(synchrony_measure)
+        # # # # # # # kmeansdata_cv.append(av_cv)
         
-zvalues_cv = ma.array(ztemp_cv, mask=np.isnan(ztemp_cv))
-zvalues_syn = ma.array(ztemp_syn, mask=np.isnan(ztemp_syn))
-# print zvalues
+# # # # # # zvalues_cv = ma.array(ztemp_cv, mask=np.isnan(ztemp_cv))
+# # # # # # zvalues_syn = ma.array(ztemp_syn, mask=np.isnan(ztemp_syn))
+# # # # # # # print zvalues
+# # # # # # 
+# # # # # # colorplot_cv = figure()
+# # # # # # title('CV values of different gext and ginh values')
+# # # # # # xlabel('ginh (nS)')
+# # # # # # ylabel('gext (nS)')
+# # # # # # colormap = mpl.cm.RdBu
+# # # # # # colormap.set_bad('k', 1.)
+# # # # # # pcolormesh(array(xvalues), array(yvalues), zvalues_cv, cmap = colormap)
+# # # # # # colorbar()
+# # # # # # 
+# # # # # # colorplot_cv.savefig('colorplot_cv.png', bbox_inches='tight')
+# # # # # # 
+# # # # # # 
+# # # # # # colorplot_syn = figure()
+# # # # # # title('Measure of synchrony of different gext and ginh values')
+# # # # # # xlabel('ginh (nS)')
+# # # # # # ylabel('gext (nS)')
+# # # # # # colormap = mpl.cm.RdBu
+# # # # # # colormap.set_bad('k', 1.)
+# # # # # # pcolormesh(array(xvalues), array(yvalues), zvalues_syn, cmap = colormap)
+# # # # # # colorbar()
+# # # # # # 
+# # # # # # colorplot_syn.savefig('colorplot_syn.png', bbox_inches='tight')
 
-colorplot_cv = figure()
-title('CV values of different gext and ginh values')
-xlabel('ginh (nS)')
-ylabel('gext (nS)')
-colormap = mpl.cm.RdBu
-colormap.set_bad('k', 1.)
-pcolormesh(array(xvalues), array(yvalues), zvalues_cv, cmap = colormap)
-colorbar()
+show()
 
-colorplot_cv.savefig('colorplot_cv.png', bbox_inches='tight')
+PRM_time = PRM.t/ms
+PRM_rate = PRM.rate/Hz
 
+sio.savemat('Matlab_file_TS.mat', {'plotlist_t_TS':plotlist_t, 'plotlist_i_TS':plotlist_i, 'PRM_time_TS': PRM_time, 'PRM_rate_TS': PRM_rate})
+# 
 
-colorplot_syn = figure()
-title('Measure of synchrony of different gext and ginh values')
-xlabel('ginh (nS)')
-ylabel('gext (nS)')
-colormap = mpl.cm.RdBu
-colormap.set_bad('k', 1.)
-pcolormesh(array(xvalues), array(yvalues), zvalues_syn, cmap = colormap)
-colorbar()
-
-colorplot_syn.savefig('colorplot_syn.png', bbox_inches='tight')
-
-
-sio.savemat('Matlab_file.mat', {'zvalues_cv':ztemp_cv, 'zvalues_syn':ztemp_syn, 'xvalues':xvalues, 'yvalues':yvalues})
-sio.savemat('Matlab_kmeans.mat', {'kmeansdata_cv':kmeansdata_cv, 'kmeansdata_syn':kmeansdata_syn})
+# sio.savemat('Matlab_file.mat', {'zvalues_cv':ztemp_cv, 'zvalues_syn':ztemp_syn, 'xvalues':xvalues, 'yvalues':yvalues})
+# sio.savemat('Matlab_kmeans.mat', {'kmeansdata_cv':kmeansdata_cv, 'kmeansdata_syn':kmeansdata_syn})
 
 end = time.time()
 total_time = end-start
