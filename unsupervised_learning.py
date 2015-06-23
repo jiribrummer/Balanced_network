@@ -297,7 +297,7 @@ for a in arange(gext_lower,gext_upper,stepsize):
         
         SM = None
         PRM = None
-        run(1000*ms, report='stdout')
+        run(100*ms, report='stdout')
         # Monitors. Only s_mon is used to visualize input neurons
         # and produces replica of Yger Fig 2A.
         # s_mon_e = SpikeMonitor(input)
@@ -308,39 +308,42 @@ for a in arange(gext_lower,gext_upper,stepsize):
         # PRM_e = PopulationRateMonitor(group_e)
         # PRM_i = PopulationRateMonitor(group_i)
         PRM = PopulationRateMonitor(neurons)
+        randomsample = random.sample(xrange(N_e+N_i), 1)
+        SM2 = SpikeMonitor(neurons[randomsample[0]:randomsample[0]+1])        
+        run(10*ms, report='stdout')
         
-        run(200*ms, report='stdout')
+        absolute_rate_array = (((PRM.rate/khertz)*(N_e+N_i))*(dt/ms))
+        biggest_peaks = absolute_rate_array.argsort()[-3:][::-1]
         
-        # # # # # # absolute_rate_array = (((PRM.rate/khertz)*(N_e+N_i))*(dt/ms))
-        # # # # # # biggest_peaks = absolute_rate_array.argsort()[-3:][::-1]
-        # # # # # # 
-        # # # # # # new_frequency_measure = mean(absolute_rate_array[biggest_peaks])
-        # # # # # # 
-        # # # # # # number_of_spikes = int(sum((PRM.rate*(N_e+N_i)/10000))/hertz)
-        # # # # # # 
-        # # # # # # dummy_matrix = zeros((N_e+N_i, len(PRM.rate)))
-        # # # # # # nspike_row = numpy.random.randint(N_e+N_i, size=number_of_spikes)
-        # # # # # # nspike_column = numpy.random.randint(len(PRM.rate), size=number_of_spikes)
-        # # # # # # for i in range(len(nspike_column)):
-        # # # # # #     dummy_matrix[nspike_row[i]][nspike_column[i]] = 1
-        # # # # # #     
-        # # # # # # dummy_rates = numpy.sum(dummy_matrix, axis=0)
-        # # # # # # dummy_biggest_peaks = dummy_rates.argsort()[-3:][::-1]
-        # # # # # # dummy_freq_measure = mean(dummy_rates[dummy_biggest_peaks])
-        # # # # # # 
-        # # # # # # synchrony_measure = new_frequency_measure/dummy_freq_measure
+        new_frequency_measure = mean(absolute_rate_array[biggest_peaks])
+        
+        number_of_spikes = int(sum((PRM.rate*(N_e+N_i)/10000))/hertz)
+        
+        dummy_matrix = zeros((N_e+N_i, len(PRM.rate)))
+        nspike_row = numpy.random.randint(N_e+N_i, size=number_of_spikes)
+        nspike_column = numpy.random.randint(len(PRM.rate), size=number_of_spikes)
+        for i in range(len(nspike_column)):
+            dummy_matrix[nspike_row[i]][nspike_column[i]] = 1
+            
+        dummy_rates = numpy.sum(dummy_matrix, axis=0)
+        dummy_biggest_peaks = dummy_rates.argsort()[-3:][::-1]
+        dummy_freq_measure = mean(dummy_rates[dummy_biggest_peaks])
+        
+        synchrony_measure = new_frequency_measure/dummy_freq_measure
         
         figname2 = 'fig' + str(int(10*a)) + str(int(10*b))
         fig2 = figure()
         # exec("%s = figure()"%(figname))
 
-        randomsample = random.sample(xrange(N_e+N_i), 50)
+
         plotlist_t = []
         plotlist_i = []
+        spiketrains = None
         for n in range(len(SM.i)):
             if SM.i[n] in randomsample:
                 plotlist_t.append(SM.t[n]/ms)
                 plotlist_i.append(randomsample.index(SM.i[n]))
+                spiketrains = get_isi_from_trains(get_trains_from_spikes(SM2.i, SM2.t/ms))
         
         subplot(211)
         title('gext = %s ginh = %s; 25 exc neurons; 25 inh neurons; global activity; dummy activity; '%(gext, ginh))
@@ -439,7 +442,7 @@ show()
 PRM_time = PRM.t/ms
 PRM_rate = PRM.rate/Hz
 
-sio.savemat('Matlab_file_TS.mat', {'plotlist_t_TS':plotlist_t, 'plotlist_i_TS':plotlist_i, 'PRM_time_TS': PRM_time, 'PRM_rate_TS': PRM_rate})
+sio.savemat('Matlab_file_TS.mat', {'plotlist_t_TS':plotlist_t, 'plotlist_i_TS':plotlist_i, 'PRM_time_TS': PRM_time, 'PRM_rate_TS': PRM_rate, 'spiketrains':spiketrains, 'dummy_rates':dummy_rates})
 # 
 
 # sio.savemat('Matlab_file.mat', {'zvalues_cv':ztemp_cv, 'zvalues_syn':ztemp_syn, 'xvalues':xvalues, 'yvalues':yvalues})
